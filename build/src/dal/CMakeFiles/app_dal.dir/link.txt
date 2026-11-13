@@ -1,0 +1,2 @@
+C:\msys64\ucrt64\bin\ar.exe qc ..\..\lib\libapp_dal.a CMakeFiles/app_dal.dir/db/DatabaseConnection.cpp.obj CMakeFiles/app_dal.dir/db/SubmissionDAO.cpp.obj CMakeFiles/app_dal.dir/db/LeaderboardDAO.cpp.obj CMakeFiles/app_dal.dir/filesystem/FileSystemDAO.cpp.obj
+C:\msys64\ucrt64\bin\ranlib.exe ..\..\lib\libapp_dal.a

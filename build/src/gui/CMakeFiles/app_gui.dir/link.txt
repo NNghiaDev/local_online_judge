@@ -1,0 +1,2 @@
+C:\msys64\ucrt64\bin\ar.exe qc ..\..\lib\libapp_gui.a CMakeFiles/app_gui.dir/AppWindow.cpp.obj CMakeFiles/app_gui.dir/views/DashboardView.cpp.obj CMakeFiles/app_gui.dir/views/TestcaseManagerView.cpp.obj CMakeFiles/app_gui.dir/views/LeaderboardView.cpp.obj CMakeFiles/app_gui.dir/views/ConsoleLogView.cpp.obj
+C:\msys64\ucrt64\bin\ranlib.exe ..\..\lib\libapp_gui.a

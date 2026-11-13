@@ -1,0 +1,1 @@
+ lib/libapp_gui.a lib/libapp_bll.a lib/libapp_dal.a lib/libapp_common.a lib/libimgui.a lib/libglfw3.a -lopengl32 C:/msys64/ucrt64/lib/libmariadb.dll.a -lpsapi -luser32 -lgdi32 -lshell32 -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 

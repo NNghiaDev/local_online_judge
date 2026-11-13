@@ -1,0 +1,13 @@
+{
+	"InstallScripts" : 
+	[
+		"D:/Semester 03/Local Online Judge/build/cmake_install.cmake",
+		"D:/Semester 03/Local Online Judge/build/_deps/glfw-build/cmake_install.cmake",
+		"D:/Semester 03/Local Online Judge/build/_deps/glfw-build/src/cmake_install.cmake",
+		"D:/Semester 03/Local Online Judge/build/src/common/cmake_install.cmake",
+		"D:/Semester 03/Local Online Judge/build/src/dal/cmake_install.cmake",
+		"D:/Semester 03/Local Online Judge/build/src/bll/cmake_install.cmake",
+		"D:/Semester 03/Local Online Judge/build/src/gui/cmake_install.cmake"
+	],
+	"Parallel" : false
+}
