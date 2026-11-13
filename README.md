@@ -1,1 +1,1 @@
-"# local_online_judge" 
+# Local online judge
