@@ -87,6 +87,12 @@ bool DatabaseConnection::connect(const DbConfig& config) {
     Logger::instance().success("Kết nối thành công CSDL [" + config.database + "]! Server: " + sVer);
 
     // Tự động khởi tạo bảng
+    execute("CREATE TABLE IF NOT EXISTS grading_sessions ("
+            "id INT AUTO_INCREMENT PRIMARY KEY,"
+            "session_name VARCHAR(128) NOT NULL,"
+            "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
+            "is_completed TINYINT DEFAULT 0);");
+
     execute("CREATE TABLE IF NOT EXISTS contestants ("
             "id INT AUTO_INCREMENT PRIMARY KEY,"
             "student_id VARCHAR(64) NOT NULL UNIQUE,"
@@ -105,6 +111,7 @@ bool DatabaseConnection::connect(const DbConfig& config) {
 
     execute("CREATE TABLE IF NOT EXISTS submissions ("
             "id INT AUTO_INCREMENT PRIMARY KEY,"
+            "session_id INT NOT NULL DEFAULT 1,"
             "contestant_id INT NOT NULL,"
             "problem_id INT NOT NULL,"
             "source_file VARCHAR(255) NOT NULL,"
@@ -116,6 +123,12 @@ bool DatabaseConnection::connect(const DbConfig& config) {
             "grading_mode ENUM('ICPC', 'IOI', 'EQUAL') NOT NULL,"
             "submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);");
 
+    // Đảm bảo cột session_id tồn tại nếu bảng đã tạo từ phiên bản trước
+    auto cols = queryRows("SHOW COLUMNS FROM submissions LIKE 'session_id'");
+    if (cols.empty()) {
+        execute("ALTER TABLE submissions ADD COLUMN session_id INT NOT NULL DEFAULT 1;");
+    }
+
     execute("CREATE TABLE IF NOT EXISTS submission_testcases ("
             "id INT AUTO_INCREMENT PRIMARY KEY,"
             "submission_id INT NOT NULL,"
@@ -125,6 +138,9 @@ bool DatabaseConnection::connect(const DbConfig& config) {
             "peak_memory_kb INT NOT NULL DEFAULT 0,"
             "score DOUBLE NOT NULL DEFAULT 0.0,"
             "error_message TEXT);");
+
+    // Tự động tải lại toàn bộ lịch sử điểm số và bài nộp từ CSDL về Bảng xếp hạng
+    SubmissionDAO::instance().loadFromDatabase();
 
     return true;
 #else

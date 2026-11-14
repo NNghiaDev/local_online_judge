@@ -131,11 +131,26 @@ src/gui/CMakeFiles/app_gui.dir/views/LeaderboardView.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/app_gui.dir/views/LeaderboardView.cpp.s"
 	cd /d "D:\Semester 03\Local Online Judge\build\src\gui" && C:\msys64\ucrt64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "D:\Semester 03\Local Online Judge\src\gui\views\LeaderboardView.cpp" -o CMakeFiles\app_gui.dir\views\LeaderboardView.cpp.s
 
+src/gui/CMakeFiles/app_gui.dir/views/SubmissionHistoryView.cpp.obj: src/gui/CMakeFiles/app_gui.dir/flags.make
+src/gui/CMakeFiles/app_gui.dir/views/SubmissionHistoryView.cpp.obj: src/gui/CMakeFiles/app_gui.dir/includes_CXX.rsp
+src/gui/CMakeFiles/app_gui.dir/views/SubmissionHistoryView.cpp.obj: D:/Semester\ 03/Local\ Online\ Judge/src/gui/views/SubmissionHistoryView.cpp
+src/gui/CMakeFiles/app_gui.dir/views/SubmissionHistoryView.cpp.obj: src/gui/CMakeFiles/app_gui.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="D:\Semester 03\Local Online Judge\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object src/gui/CMakeFiles/app_gui.dir/views/SubmissionHistoryView.cpp.obj"
+	cd /d "D:\Semester 03\Local Online Judge\build\src\gui" && C:\msys64\ucrt64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/gui/CMakeFiles/app_gui.dir/views/SubmissionHistoryView.cpp.obj -MF CMakeFiles\app_gui.dir\views\SubmissionHistoryView.cpp.obj.d -o CMakeFiles\app_gui.dir\views\SubmissionHistoryView.cpp.obj -c "D:\Semester 03\Local Online Judge\src\gui\views\SubmissionHistoryView.cpp"
+
+src/gui/CMakeFiles/app_gui.dir/views/SubmissionHistoryView.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/app_gui.dir/views/SubmissionHistoryView.cpp.i"
+	cd /d "D:\Semester 03\Local Online Judge\build\src\gui" && C:\msys64\ucrt64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "D:\Semester 03\Local Online Judge\src\gui\views\SubmissionHistoryView.cpp" > CMakeFiles\app_gui.dir\views\SubmissionHistoryView.cpp.i
+
+src/gui/CMakeFiles/app_gui.dir/views/SubmissionHistoryView.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/app_gui.dir/views/SubmissionHistoryView.cpp.s"
+	cd /d "D:\Semester 03\Local Online Judge\build\src\gui" && C:\msys64\ucrt64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "D:\Semester 03\Local Online Judge\src\gui\views\SubmissionHistoryView.cpp" -o CMakeFiles\app_gui.dir\views\SubmissionHistoryView.cpp.s
+
 src/gui/CMakeFiles/app_gui.dir/views/ConsoleLogView.cpp.obj: src/gui/CMakeFiles/app_gui.dir/flags.make
 src/gui/CMakeFiles/app_gui.dir/views/ConsoleLogView.cpp.obj: src/gui/CMakeFiles/app_gui.dir/includes_CXX.rsp
 src/gui/CMakeFiles/app_gui.dir/views/ConsoleLogView.cpp.obj: D:/Semester\ 03/Local\ Online\ Judge/src/gui/views/ConsoleLogView.cpp
 src/gui/CMakeFiles/app_gui.dir/views/ConsoleLogView.cpp.obj: src/gui/CMakeFiles/app_gui.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="D:\Semester 03\Local Online Judge\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object src/gui/CMakeFiles/app_gui.dir/views/ConsoleLogView.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="D:\Semester 03\Local Online Judge\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object src/gui/CMakeFiles/app_gui.dir/views/ConsoleLogView.cpp.obj"
 	cd /d "D:\Semester 03\Local Online Judge\build\src\gui" && C:\msys64\ucrt64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/gui/CMakeFiles/app_gui.dir/views/ConsoleLogView.cpp.obj -MF CMakeFiles\app_gui.dir\views\ConsoleLogView.cpp.obj.d -o CMakeFiles\app_gui.dir\views\ConsoleLogView.cpp.obj -c "D:\Semester 03\Local Online Judge\src\gui\views\ConsoleLogView.cpp"
 
 src/gui/CMakeFiles/app_gui.dir/views/ConsoleLogView.cpp.i: cmake_force
@@ -152,6 +167,7 @@ app_gui_OBJECTS = \
 "CMakeFiles/app_gui.dir/views/DashboardView.cpp.obj" \
 "CMakeFiles/app_gui.dir/views/TestcaseManagerView.cpp.obj" \
 "CMakeFiles/app_gui.dir/views/LeaderboardView.cpp.obj" \
+"CMakeFiles/app_gui.dir/views/SubmissionHistoryView.cpp.obj" \
 "CMakeFiles/app_gui.dir/views/ConsoleLogView.cpp.obj"
 
 # External object files for target app_gui
@@ -161,10 +177,11 @@ lib/libapp_gui.a: src/gui/CMakeFiles/app_gui.dir/AppWindow.cpp.obj
 lib/libapp_gui.a: src/gui/CMakeFiles/app_gui.dir/views/DashboardView.cpp.obj
 lib/libapp_gui.a: src/gui/CMakeFiles/app_gui.dir/views/TestcaseManagerView.cpp.obj
 lib/libapp_gui.a: src/gui/CMakeFiles/app_gui.dir/views/LeaderboardView.cpp.obj
+lib/libapp_gui.a: src/gui/CMakeFiles/app_gui.dir/views/SubmissionHistoryView.cpp.obj
 lib/libapp_gui.a: src/gui/CMakeFiles/app_gui.dir/views/ConsoleLogView.cpp.obj
 lib/libapp_gui.a: src/gui/CMakeFiles/app_gui.dir/build.make
 lib/libapp_gui.a: src/gui/CMakeFiles/app_gui.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir="D:\Semester 03\Local Online Judge\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_6) "Linking CXX static library ..\..\lib\libapp_gui.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir="D:\Semester 03\Local Online Judge\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_7) "Linking CXX static library ..\..\lib\libapp_gui.a"
 	cd /d "D:\Semester 03\Local Online Judge\build\src\gui" && $(CMAKE_COMMAND) -P CMakeFiles\app_gui.dir\cmake_clean_target.cmake
 	cd /d "D:\Semester 03\Local Online Judge\build\src\gui" && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles\app_gui.dir\link.txt --verbose=$(VERBOSE)
 

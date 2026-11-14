@@ -223,4 +223,7 @@ src/dal/CMakeFiles/app_dal.dir/db/SubmissionDAO.cpp.obj: \
  C:/msys64/ucrt64/include/c++/15.2.0/bits/hashtable.h \
  C:/msys64/ucrt64/include/c++/15.2.0/bits/hashtable_policy.h \
  C:/msys64/ucrt64/include/c++/15.2.0/bits/node_handle.h \
- C:/msys64/ucrt64/include/c++/15.2.0/bits/erase_if.h
+ C:/msys64/ucrt64/include/c++/15.2.0/bits/erase_if.h \
+ C:/msys64/ucrt64/include/c++/15.2.0/algorithm \
+ C:/msys64/ucrt64/include/c++/15.2.0/bits/ranges_algo.h \
+ C:/msys64/ucrt64/include/c++/15.2.0/pstl/glue_algorithm_defs.h

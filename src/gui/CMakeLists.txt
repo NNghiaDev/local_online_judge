@@ -8,6 +8,8 @@ add_library(app_gui STATIC
     views/TestcaseManagerView.cpp
     views/LeaderboardView.hpp
     views/LeaderboardView.cpp
+    views/SubmissionHistoryView.hpp
+    views/SubmissionHistoryView.cpp
     views/ConsoleLogView.hpp
     views/ConsoleLogView.cpp
 )

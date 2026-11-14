@@ -83,9 +83,19 @@ struct TestcaseResult {
     std::string errorMessage;
 };
 
+// Grading Session Info
+struct SessionInfo {
+    int id = 1;
+    std::string sessionName = "Phiên #1";
+    std::string createdAt;
+    bool isCompleted = false;
+};
+
 // Submission entity & result
 struct SubmissionSummary {
     int id = 0;
+    int sessionId = 1;
+    std::string sessionName = "Phiên #1";
     int contestantId = 0;
     std::string studentId;
     std::string studentName;
@@ -105,12 +115,14 @@ struct SubmissionSummary {
 // Leaderboard row entry
 struct LeaderboardEntry {
     int rank = 1;
+    int sessionId = 0; // 0: Tất cả các phiên, hoặc session ID cụ thể
     std::string studentId;
     std::string studentName;
     int solvedCount = 0;
     double totalScore = 0.0;
     uint32_t totalPenaltyTime = 0; // For ICPC mode
-    std::vector<std::pair<std::string, double>> problemScores; // problemCode -> score
+    std::vector<std::pair<std::string, double>> problemScores; // problemCode -> score (for IOI/Equal)
+    std::vector<std::pair<std::string, bool>> problemSolvedStatus; // problemCode -> isAC (for ICPC)
 };
 
 // Problem specifications
@@ -123,6 +135,7 @@ struct ProblemSpec {
     GradingMode gradingMode = GradingMode::EQUAL;
     double totalScore = 100.0;
     std::string customCheckerPath; // Optional path to custom checker executable
+    std::vector<double> ioiPoints; // Configured point weight per testcase for IOI mode
 };
 
 } // namespace loj

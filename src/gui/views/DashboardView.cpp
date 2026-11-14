@@ -5,6 +5,8 @@
 #include "common/Logger.hpp"
 #include <imgui.h>
 #include <thread>
+#include <sstream>
+#include <cmath>
 
 namespace loj {
 
@@ -222,33 +224,84 @@ void DashboardView::render() {
 
     ImGui::Spacing();
 
-    // Giới hạn thời gian, bộ nhớ, chế độ chấm
-    float limColW = (fullW - colSpacing * 2.0f) / 3.0f;
-    ImGui::Columns(3, "LimitsRowCols", false);
-    ImGui::SetColumnWidth(0, limColW);
-    ImGui::SetColumnWidth(1, limColW);
-    ImGui::SetColumnWidth(2, limColW);
+    // Giới hạn thời gian, bộ nhớ, chế độ chấm và điểm tối đa của bài
+    float limColW = (fullW - colSpacing * 3.0f) * 0.25f;
+    ImGui::Columns(4, "LimitsRowCols", false);
+    ImGui::SetColumnWidth(0, limColW * 0.9f);
+    ImGui::SetColumnWidth(1, limColW * 0.9f);
+    ImGui::SetColumnWidth(2, limColW * 1.3f);
+    ImGui::SetColumnWidth(3, limColW * 0.9f);
 
-    ImGui::Text("Giới hạn thời gian (ms):");
+    ImGui::Text("Thời gian (ms):");
     ImGui::SetNextItemWidth(-1.0f);
     ImGui::InputInt("##tleLimit", &m_timeLimitMs);
 
     ImGui::NextColumn();
-    ImGui::Text("Giới hạn bộ nhớ (MB):");
+    ImGui::Text("Bộ nhớ (MB):");
     ImGui::SetNextItemWidth(-1.0f);
     ImGui::InputInt("##mleLimit", &m_memoryLimitMb);
 
     ImGui::NextColumn();
     ImGui::Text("Chế độ chấm điểm:");
     const char* modes[] = {
-        "1. ICPC (0 hoặc 100 điểm, phạt thời gian)",
-        "2. IOI (Chấm theo Subtask)",
-        "3. Equal (Chia đều điểm theo test)"
+        "1. ICPC (0 hoặc Điểm tối đa, phạt thời gian)",
+        "2. IOI (Định nghĩa điểm cụ thể từng test)",
+        "3. Equal (Chia đều điểm tối đa theo test)"
     };
     ImGui::SetNextItemWidth(-1.0f);
     ImGui::Combo("##gradingStrategy", &m_gradingModeIdx, modes, IM_ARRAYSIZE(modes));
 
+    ImGui::NextColumn();
+    ImGui::Text("Điểm tối đa của bài:");
+    ImGui::SetNextItemWidth(-1.0f);
+    ImGui::InputDouble("##totalScoreInput", &m_totalScore, 5.0, 10.0, "%.1f");
+    if (m_totalScore <= 0.0) m_totalScore = 100.0;
+
     ImGui::Columns(1);
+    ImGui::Spacing();
+
+    // =========================================================================
+    // CẤU HÌNH CHI TIẾT & GỢI Ý TRỰC QUAN THEO CHẾ ĐỘ CHẤM
+    // =========================================================================
+    if (m_gradingModeIdx == 2) { // EQUAL
+        ImGui::TextColored(ImVec4(0.35f, 0.75f, 1.00f, 1.0f),
+            "* Chế độ Equal: Điểm tối đa (%.1f điểm) sẽ tự động chia đều cho số lượng testcase thực tế của bài (phụ thuộc vào số test phát hiện được, ví dụ 4 test thì mỗi test = %.1f điểm, 5 test thì mỗi test = %.1f điểm).",
+            m_totalScore, m_totalScore / 4.0, m_totalScore / 5.0);
+    } else if (m_gradingModeIdx == 1) { // IOI
+        ImGui::Text("Phân bổ điểm cho từng test (nhập các số cách nhau bởi dấu phẩy, tương ứng với số test của bài):");
+        ImGui::SetNextItemWidth(-1.0f);
+        ImGui::InputText("##ioiPointsInput", m_ioiPointsStr, sizeof(m_ioiPointsStr));
+
+        // Parse và phân tích tổng điểm hiện tại
+        std::vector<double> parsedPoints;
+        std::stringstream ss(m_ioiPointsStr);
+        std::string token;
+        double sumPts = 0.0;
+        while (std::getline(ss, token, ',')) {
+            try {
+                size_t start = token.find_first_not_of(" \t\r\n");
+                size_t end = token.find_last_not_of(" \t\r\n");
+                if (start != std::string::npos && end != std::string::npos) {
+                    double val = std::stod(token.substr(start, end - start + 1));
+                    parsedPoints.push_back(val);
+                    sumPts += val;
+                }
+            } catch (...) {}
+        }
+
+        if (std::abs(sumPts - m_totalScore) < 1e-4) {
+            ImGui::TextColored(ImVec4(0.20f, 0.90f, 0.40f, 1.0f),
+                "Đã cấu hình cho %d test: Tổng điểm = %.1f / %.1f điểm (Đủ điểm tối đa).",
+                static_cast<int>(parsedPoints.size()), sumPts, m_totalScore);
+        } else {
+            ImGui::TextColored(ImVec4(0.98f, 0.75f, 0.20f, 1.0f),
+                "Đã cấu hình cho %d test: Tổng điểm hiện tại = %.1f / %.1f điểm (Nếu số test thực tế nhiều hơn, điểm còn lại tự chia đều).",
+                static_cast<int>(parsedPoints.size()), sumPts, m_totalScore);
+        }
+    } else { // ICPC
+        ImGui::TextColored(ImVec4(0.85f, 0.50f, 1.00f, 1.0f),
+            "* Chế độ ICPC: Chỉ tính bài giải được (AC toàn bộ test) và thời gian phạt. Sai bất kỳ test nào dừng ngay (0 điểm). Bảng xếp hạng chỉ hiển thị Số Bài Đúng và Thời Gian Phạt.");
+    }
 
     ImGui::Spacing();
     ImGui::Spacing();
@@ -282,7 +335,22 @@ void DashboardView::render() {
                     defaultProblem.timeLimitMs = m_timeLimitMs;
                     defaultProblem.memoryLimitMb = m_memoryLimitMb;
                     defaultProblem.gradingMode = static_cast<GradingMode>(m_gradingModeIdx);
-                    defaultProblem.totalScore = 100.0;
+                    defaultProblem.totalScore = m_totalScore;
+
+                    // Parse danh sách điểm IOI nếu đang ở chế độ IOI
+                    if (defaultProblem.gradingMode == GradingMode::IOI) {
+                        std::stringstream ss(m_ioiPointsStr);
+                        std::string token;
+                        while (std::getline(ss, token, ',')) {
+                            try {
+                                size_t start = token.find_first_not_of(" \t\r\n");
+                                size_t end = token.find_last_not_of(" \t\r\n");
+                                if (start != std::string::npos && end != std::string::npos) {
+                                    defaultProblem.ioiPoints.push_back(std::stod(token.substr(start, end - start + 1)));
+                                }
+                            } catch (...) {}
+                        }
+                    }
 
                     if (m_targetMode == TargetMode::SINGLE_FILE) {
                         auto testcases = FileSystemDAO::instance().loadTestcases(m_testcaseDir);

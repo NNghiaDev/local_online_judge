@@ -13,8 +13,19 @@ LeaderboardDAO& LeaderboardDAO::instance() {
     return s_instance;
 }
 
-std::vector<LeaderboardEntry> LeaderboardDAO::generateLeaderboard(GradingMode mode) {
-    auto submissions = SubmissionDAO::instance().getAllSubmissions();
+std::vector<LeaderboardEntry> LeaderboardDAO::generateLeaderboard(GradingMode mode, int sessionId) {
+    auto allSubmissions = SubmissionDAO::instance().getAllSubmissions();
+    std::vector<SubmissionSummary> submissions;
+
+    if (sessionId > 0) {
+        for (const auto& s : allSubmissions) {
+            if (s.sessionId == sessionId) {
+                submissions.push_back(s);
+            }
+        }
+    } else {
+        submissions = allSubmissions;
+    }
 
     struct ContestantAgg {
         std::string studentId;
@@ -35,9 +46,9 @@ std::vector<LeaderboardEntry> LeaderboardDAO::generateLeaderboard(GradingMode mo
             agg.studentName = sub.studentId;
         }
 
-        double currentBest = agg.problemBestScore[sub.problemCode];
-        if (sub.totalScore > currentBest) {
+        if (agg.problemBestScore.find(sub.problemCode) == agg.problemBestScore.end() || sub.totalScore > agg.problemBestScore[sub.problemCode]) {
             agg.problemBestScore[sub.problemCode] = sub.totalScore;
+            agg.problemTime[sub.problemCode] = sub.totalTimeMs;
         }
 
         if (sub.overallVerdict == Verdict::AC) {
@@ -51,18 +62,22 @@ std::vector<LeaderboardEntry> LeaderboardDAO::generateLeaderboard(GradingMode mo
     std::vector<LeaderboardEntry> leaderboard;
     for (const auto& [studentId, agg] : aggMap) {
         LeaderboardEntry entry;
+        entry.sessionId = sessionId;
         entry.studentId = agg.studentId;
         entry.studentName = agg.studentName;
 
         for (const auto& [prob, score] : agg.problemBestScore) {
             entry.totalScore += score;
             entry.problemScores.emplace_back(prob, score);
+            if (agg.problemTime.count(prob)) {
+                entry.totalPenaltyTime += agg.problemTime.at(prob);
+            }
         }
 
         for (const auto& [prob, solved] : agg.problemSolved) {
+            entry.problemSolvedStatus.emplace_back(prob, solved);
             if (solved) {
                 entry.solvedCount++;
-                entry.totalPenaltyTime += agg.problemTime.at(prob);
             }
         }
 
@@ -70,6 +85,7 @@ std::vector<LeaderboardEntry> LeaderboardDAO::generateLeaderboard(GradingMode mo
     }
 
     if (mode == GradingMode::ICPC) {
+        // ICPC: Ưu tiên Số bài giải được (giảm dần) -> Tổng thời gian phạt (tăng dần)
         std::sort(leaderboard.begin(), leaderboard.end(), [](const LeaderboardEntry& a, const LeaderboardEntry& b) {
             if (a.solvedCount != b.solvedCount) {
                 return a.solvedCount > b.solvedCount;
@@ -77,23 +93,38 @@ std::vector<LeaderboardEntry> LeaderboardDAO::generateLeaderboard(GradingMode mo
             return a.totalPenaltyTime < b.totalPenaltyTime;
         });
     } else {
+        // IOI / EQUAL: Ưu tiên Tổng điểm (giảm dần) -> Tổng thời gian chạy (tăng dần)
         std::sort(leaderboard.begin(), leaderboard.end(), [](const LeaderboardEntry& a, const LeaderboardEntry& b) {
-            if (a.totalScore != b.totalScore) {
+            if (std::abs(a.totalScore - b.totalScore) > 1e-4) {
                 return a.totalScore > b.totalScore;
             }
             return a.totalPenaltyTime < b.totalPenaltyTime;
         });
     }
 
+    int currentRank = 1;
     for (size_t i = 0; i < leaderboard.size(); ++i) {
-        leaderboard[i].rank = static_cast<int>(i + 1);
+        if (i > 0) {
+            bool tie = false;
+            if (mode == GradingMode::ICPC) {
+                tie = (leaderboard[i].solvedCount == leaderboard[i - 1].solvedCount &&
+                       leaderboard[i].totalPenaltyTime == leaderboard[i - 1].totalPenaltyTime);
+            } else {
+                tie = (std::abs(leaderboard[i].totalScore - leaderboard[i - 1].totalScore) <= 1e-4 &&
+                       leaderboard[i].totalPenaltyTime == leaderboard[i - 1].totalPenaltyTime);
+            }
+            if (!tie) {
+                currentRank = static_cast<int>(i + 1);
+            }
+        }
+        leaderboard[i].rank = currentRank;
     }
 
     return leaderboard;
 }
 
-bool LeaderboardDAO::exportToCSV(const std::filesystem::path& filePath, GradingMode mode) {
-    auto entries = generateLeaderboard(mode);
+bool LeaderboardDAO::exportToCSV(const std::filesystem::path& filePath, GradingMode mode, int sessionId) {
+    auto entries = generateLeaderboard(mode, sessionId);
 
     std::ofstream out(filePath, std::ios::out | std::ios::binary);
     if (!out.is_open()) {
@@ -101,20 +132,29 @@ bool LeaderboardDAO::exportToCSV(const std::filesystem::path& filePath, GradingM
         return false;
     }
 
-    // Ghi UTF-8 BOM để Excel hiển thị tiếng Việt có dấu chuẩn 100%
+    // Ghi UTF-8 BOM
     const unsigned char bom[] = {0xEF, 0xBB, 0xBF};
     out.write(reinterpret_cast<const char*>(bom), sizeof(bom));
 
-    // Header CSV
-    out << "Thứ Hạng,Mã Số Sinh Viên (MSSV),Họ Và Tên Thí Sinh,Số Bài Đúng (AC),Tổng Điểm Số,Thời Gian Phạt (ms)\n";
-
-    for (const auto& e : entries) {
-        out << e.rank << ",\""
-            << e.studentId << "\",\""
-            << e.studentName << "\","
-            << e.solvedCount << ","
-            << std::fixed << std::setprecision(1) << e.totalScore << ","
-            << e.totalPenaltyTime << "\n";
+    // Tiêu đề cột tương ứng theo chế độ
+    if (mode == GradingMode::ICPC) {
+        out << "Thứ Hạng,Mã Số Sinh Viên (MSSV),Họ Và Tên Thí Sinh,Số Bài Đúng (AC),Thời Gian Phạt (ms)\n";
+        for (const auto& e : entries) {
+            out << e.rank << ",\""
+                << e.studentId << "\",\""
+                << e.studentName << "\","
+                << e.solvedCount << ","
+                << e.totalPenaltyTime << "\n";
+        }
+    } else {
+        out << "Thứ Hạng,Mã Số Sinh Viên (MSSV),Họ Và Tên Thí Sinh,Tổng Điểm Số,Thời Gian (ms)\n";
+        for (const auto& e : entries) {
+            out << e.rank << ",\""
+                << e.studentId << "\",\""
+                << e.studentName << "\","
+                << std::fixed << std::setprecision(1) << e.totalScore << ","
+                << e.totalPenaltyTime << "\n";
+        }
     }
 
     out.close();
@@ -122,8 +162,8 @@ bool LeaderboardDAO::exportToCSV(const std::filesystem::path& filePath, GradingM
     return true;
 }
 
-bool LeaderboardDAO::exportToText(const std::filesystem::path& filePath, GradingMode mode) {
-    auto entries = generateLeaderboard(mode);
+bool LeaderboardDAO::exportToText(const std::filesystem::path& filePath, GradingMode mode, int sessionId) {
+    auto entries = generateLeaderboard(mode, sessionId);
 
     std::ofstream out(filePath, std::ios::out);
     if (!out.is_open()) {
@@ -131,21 +171,48 @@ bool LeaderboardDAO::exportToText(const std::filesystem::path& filePath, Grading
         return false;
     }
 
+    std::string sessionTitle = (sessionId > 0) ? ("Phiên #" + std::to_string(sessionId)) : "Tất cả các phiên";
+
     out << "========================================================================================\n";
     out << "                        BẢNG XẾP HẠNG THÍ SINH (LOCAL ONLINE JUDGE)                    \n";
-    out << "                        Chế độ chấm: " << gradingModeToString(mode) << "\n";
+    out << "                        Phiên: " << sessionTitle << " | Chế độ: " << gradingModeToString(mode) << "\n";
     out << "========================================================================================\n";
-    out << std::left
-        << std::setw(8)  << "Hạng"
-        << std::setw(18) << "MSSV"
-        << std::setw(30) << "Họ Và Tên"
-        << std::setw(14) << "Số Bài Đúng"
-        << std::setw(14) << "Tổng Điểm"
-        << std::setw(16) << "Thời Gian (ms)" << "\n";
-    out << "----------------------------------------------------------------------------------------\n";
 
-    for (const auto& e : entries) {
+    if (mode == GradingMode::ICPC) {
         out << std::left
+            << std::setw(8)  << "Hạng"
+            << std::setw(18) << "MSSV"
+            << std::setw(32) << "Họ Và Tên"
+            << std::setw(18) << "Số Bài Đúng (AC)"
+            << std::setw(18) << "Thời Gian Phạt (ms)" << "\n";
+        out << "----------------------------------------------------------------------------------------\n";
+        for (const auto& e : entries) {
+            out << std::left
+                << std::setw(8)  << e.rank
+                << std::setw(18) << e.studentId
+                << std::setw(32) << e.studentName
+                << std::setw(18) << (std::to_string(e.solvedCount) + " bài")
+                << std::setw(18) << e.totalPenaltyTime << "\n";
+        }
+    } else {
+        out << std::left
+            << std::setw(8)  << "Hạng"
+            << std::setw(18) << "MSSV"
+            << std::setw(32) << "Họ Và Tên"
+            << std::setw(18) << "Tổng Điểm"
+            << std::setw(18) << "Thời Gian (ms)" << "\n";
+        out << "----------------------------------------------------------------------------------------\n";
+        for (const auto& e : entries) {
+            std::ostringstream scoreSs;
+            scoreSs << std::fixed << std::setprecision(1) << e.totalScore << " đ";
+            out << std::left
+                << std::setw(8)  << e.rank
+                << std::setw(18) << e.studentId
+                << std::setw(32) << e.studentName
+                << std::setw(18) << scoreSs.str()
+                << std::setw(18) << e.totalPenaltyTime << "\n";
+        }
+    }
             << std::setw(8)  << ("#" + std::to_string(e.rank))
             << std::setw(18) << e.studentId
             << std::setw(30) << e.studentName

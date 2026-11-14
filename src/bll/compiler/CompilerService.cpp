@@ -9,49 +9,62 @@ namespace loj {
 
 namespace fs = std::filesystem;
 
-CompilerService::CompilerService() = default;
+CompilerService::CompilerService() {
+    // Tự động tìm đường dẫn g++.exe chuẩn trên MinGW/MSYS2
+    if (fs::exists("C:\\msys64\\ucrt64\\bin\\g++.exe")) {
+        m_compilerPath = "C:\\msys64\\ucrt64\\bin\\g++.exe";
+    } else if (fs::exists("C:\\msys64\\mingw64\\bin\\g++.exe")) {
+        m_compilerPath = "C:\\msys64\\mingw64\\bin\\g++.exe";
+    } else {
+        m_compilerPath = "g++";
+    }
+}
 
 CompilationResult CompilerService::compile(const fs::path& sourcePath, const fs::path& outputDir) {
     CompilationResult result;
     result.success = false;
 
-    if (!fs::exists(sourcePath)) {
-        result.compilerOutput = "Source file does not exist: " + sourcePath.string();
+    // Chuyển sang đường dẫn tuyệt đối chuẩn để g++ không bao giờ bị lạc thư mục
+    fs::path absSource = fs::absolute(sourcePath);
+    if (!fs::exists(absSource)) {
+        // Thử tìm theo thư mục hiện hành
+        absSource = fs::current_path() / sourcePath;
+    }
+
+    if (!fs::exists(absSource)) {
+        result.compilerOutput = "File mã nguồn không tồn tại: " + sourcePath.string();
+        Logger::instance().error(result.compilerOutput);
         return result;
     }
 
-    fs::path targetDir = outputDir.empty() ? sourcePath.parent_path() : outputDir;
+    fs::path targetDir = outputDir.empty() ? absSource.parent_path() : fs::absolute(outputDir);
     if (!fs::exists(targetDir)) {
-        fs::create_directories(targetDir);
+        std::error_code ec;
+        fs::create_directories(targetDir, ec);
     }
 
-    std::string baseStem = sourcePath.stem().string();
+    std::string baseStem = absSource.stem().string();
     fs::path exePath = targetDir / (baseStem + "_exec.exe");
     result.outputExecutablePath = exePath;
 
-    // Remove old executable if present
+    // Xóa file thực thi cũ nếu có
     if (fs::exists(exePath)) {
         std::error_code ec;
         fs::remove(exePath, ec);
     }
 
-    // Command: g++ -O3 -std=c++20 "source.cpp" -o "binary.exe"
-    std::string cmd = m_compilerPath + " -O3 -std=c++20 \"" + sourcePath.string() +
+    // Câu lệnh biên dịch với đường dẫn tuyệt đối đầy đủ trong dấu nháy kép
+    std::string cmd = "\"" + m_compilerPath + "\" -O3 -std=c++20 \"" + absSource.string() +
                       "\" -o \"" + exePath.string() + "\"";
 
-    Logger::instance().info("Compiling: " + sourcePath.filename().string() + " -> " + exePath.filename().string());
+    Logger::instance().info("Đang biên dịch: " + absSource.filename().string() + "...");
 
     auto startTime = std::chrono::steady_clock::now();
 
-    // Execute compiler through ProcessSandbox with a generous 15s timeout
     ExecutionConfig execConfig;
-    execConfig.executablePath = m_compilerPath;
+    execConfig.executablePath = cmd;
     execConfig.workingDirectory = targetDir;
-    // For MinGW g++, we can invoke cmd.exe /c or directly g++.exe
-    // Let's invoke via cmd.exe /c to handle path quotes and flags portably on Windows
-    std::string fullCmd = "cmd.exe /c " + cmd;
-    execConfig.executablePath = "C:\\Windows\\System32\\cmd.exe /c " + cmd;
-    execConfig.timeLimitMs = 20000;
+    execConfig.timeLimitMs = 25000;
     execConfig.memoryLimitMb = 1024;
 
     RawExecutionResult raw = ProcessSandbox::execute(execConfig);
@@ -66,13 +79,14 @@ CompilationResult CompilerService::compile(const fs::path& sourcePath, const fs:
         result.compilerOutput += "\n" + raw.diagnosticMessage;
     }
 
-    // Check if output executable was actually generated
+    // Kiểm tra file thực thi đã sinh ra thành công hay chưa
     if (fs::exists(exePath) && raw.exitCode == 0) {
         result.success = true;
-        Logger::instance().success("Compiled successfully in " + std::to_string(result.compileTimeMs) + " ms");
+        Logger::instance().success("Biên dịch thành công [" + absSource.filename().string() + "] (" +
+                               std::to_string(result.compileTimeMs) + " ms)");
     } else {
         result.success = false;
-        Logger::instance().error("Compilation failed: " + sourcePath.filename().string());
+        Logger::instance().error("Lỗi biên dịch (CE) bài [" + absSource.filename().string() + "]:\n" + result.compilerOutput);
     }
 
     return result;

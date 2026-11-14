@@ -176,11 +176,11 @@ void AppWindow::renderUI() {
 
     ImGui::Spacing();
 
-    // Dàn đều 4 nút điều hướng theo toàn bộ chiều rộng hiện có
+    // Dàn đều 5 nút điều hướng theo toàn bộ chiều rộng hiện có
     float availWidth = ImGui::GetContentRegionAvail().x;
     float tabSpacing = 8.0f;
-    float tabWidth = (availWidth - (tabSpacing * 3.0f)) / 4.0f;
-    if (tabWidth < 160.0f) tabWidth = 160.0f;
+    float tabWidth = (availWidth - (tabSpacing * 4.0f)) / 5.0f;
+    if (tabWidth < 140.0f) tabWidth = 140.0f;
 
     auto renderTabButton = [this, tabWidth](int tabIdx, const char* label, const ImVec4& activeCol) {
         bool isActive = (m_activeTab == tabIdx);
@@ -202,9 +202,11 @@ void AppWindow::renderUI() {
     ImGui::SameLine(0, tabSpacing);
     renderTabButton(1, "BẢNG XẾP HẠNG",       ImVec4(0.95f, 0.65f, 0.15f, 1.0f));
     ImGui::SameLine(0, tabSpacing);
-    renderTabButton(2, "QUẢN LÝ TESTCASE",      ImVec4(0.15f, 0.75f, 0.50f, 1.0f));
+    renderTabButton(2, "LỊCH SỬ CHẤM",        ImVec4(0.12f, 0.68f, 0.42f, 1.0f));
     ImGui::SameLine(0, tabSpacing);
-    renderTabButton(3, "NHẬT KÝ CONSOLE",       ImVec4(0.65f, 0.35f, 0.95f, 1.0f));
+    renderTabButton(3, "QUẢN LÝ TESTCASE",      ImVec4(0.55f, 0.40f, 0.85f, 1.0f));
+    ImGui::SameLine(0, tabSpacing);
+    renderTabButton(4, "NHẬT KÝ CONSOLE",       ImVec4(0.40f, 0.45f, 0.55f, 1.0f));
 
     ImGui::EndChild();
 
@@ -216,8 +218,10 @@ void AppWindow::renderUI() {
     } else if (m_activeTab == 1) {
         m_leaderboardView.render();
     } else if (m_activeTab == 2) {
-        m_testcaseView.render();
+        m_historyView.render();
     } else if (m_activeTab == 3) {
+        m_testcaseView.render();
+    } else if (m_activeTab == 4) {
         m_consoleView.render();
     }
 

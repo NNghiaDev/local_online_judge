@@ -10,13 +10,14 @@ class LeaderboardDAO {
 public:
     static LeaderboardDAO& instance();
 
-    std::vector<LeaderboardEntry> generateLeaderboard(GradingMode mode);
+    // Sinh bảng xếp hạng theo chế độ chấm và phiên chấm (sessionId = 0: Tất cả các phiên)
+    std::vector<LeaderboardEntry> generateLeaderboard(GradingMode mode, int sessionId = 0);
 
-    // Xuất danh sách bảng xếp hạng ra file CSV (tương thích Microsoft Excel)
-    bool exportToCSV(const std::filesystem::path& filePath, GradingMode mode);
+    // Xuất danh sách bảng xếp hạng ra file CSV
+    bool exportToCSV(const std::filesystem::path& filePath, GradingMode mode, int sessionId = 0);
 
     // Xuất danh sách bảng xếp hạng ra file văn bản (TXT)
-    bool exportToText(const std::filesystem::path& filePath, GradingMode mode);
+    bool exportToText(const std::filesystem::path& filePath, GradingMode mode, int sessionId = 0);
 
 private:
     LeaderboardDAO() = default;

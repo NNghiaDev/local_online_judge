@@ -1898,6 +1898,7 @@ src/bll/CMakeFiles/app_bll.dir/strategies/IOIGradingStrategy.cpp.obj: D:/Semeste
   C:/msys64/ucrt64/include/c++/15.2.0/bits/shared_ptr.h \
   C:/msys64/ucrt64/include/c++/15.2.0/bits/shared_ptr_atomic.h \
   C:/msys64/ucrt64/include/c++/15.2.0/bits/shared_ptr_base.h \
+  C:/msys64/ucrt64/include/c++/15.2.0/bits/specfun.h \
   C:/msys64/ucrt64/include/c++/15.2.0/bits/sstream.tcc \
   C:/msys64/ucrt64/include/c++/15.2.0/bits/std_abs.h \
   C:/msys64/ucrt64/include/c++/15.2.0/bits/std_mutex.h \
@@ -1936,6 +1937,7 @@ src/bll/CMakeFiles/app_bll.dir/strategies/IOIGradingStrategy.cpp.obj: D:/Semeste
   C:/msys64/ucrt64/include/c++/15.2.0/charconv \
   C:/msys64/ucrt64/include/c++/15.2.0/chrono \
   C:/msys64/ucrt64/include/c++/15.2.0/clocale \
+  C:/msys64/ucrt64/include/c++/15.2.0/cmath \
   C:/msys64/ucrt64/include/c++/15.2.0/compare \
   C:/msys64/ucrt64/include/c++/15.2.0/concepts \
   C:/msys64/ucrt64/include/c++/15.2.0/cstddef \
@@ -1981,6 +1983,18 @@ src/bll/CMakeFiles/app_bll.dir/strategies/IOIGradingStrategy.cpp.obj: D:/Semeste
   C:/msys64/ucrt64/include/c++/15.2.0/string \
   C:/msys64/ucrt64/include/c++/15.2.0/string_view \
   C:/msys64/ucrt64/include/c++/15.2.0/system_error \
+  C:/msys64/ucrt64/include/c++/15.2.0/tr1/bessel_function.tcc \
+  C:/msys64/ucrt64/include/c++/15.2.0/tr1/beta_function.tcc \
+  C:/msys64/ucrt64/include/c++/15.2.0/tr1/ell_integral.tcc \
+  C:/msys64/ucrt64/include/c++/15.2.0/tr1/exp_integral.tcc \
+  C:/msys64/ucrt64/include/c++/15.2.0/tr1/gamma.tcc \
+  C:/msys64/ucrt64/include/c++/15.2.0/tr1/hypergeometric.tcc \
+  C:/msys64/ucrt64/include/c++/15.2.0/tr1/legendre_function.tcc \
+  C:/msys64/ucrt64/include/c++/15.2.0/tr1/modified_bessel_func.tcc \
+  C:/msys64/ucrt64/include/c++/15.2.0/tr1/poly_hermite.tcc \
+  C:/msys64/ucrt64/include/c++/15.2.0/tr1/poly_laguerre.tcc \
+  C:/msys64/ucrt64/include/c++/15.2.0/tr1/riemann_zeta.tcc \
+  C:/msys64/ucrt64/include/c++/15.2.0/tr1/special_function_util.h \
   C:/msys64/ucrt64/include/c++/15.2.0/tuple \
   C:/msys64/ucrt64/include/c++/15.2.0/type_traits \
   C:/msys64/ucrt64/include/c++/15.2.0/typeinfo \
@@ -2010,6 +2024,7 @@ src/bll/CMakeFiles/app_bll.dir/strategies/IOIGradingStrategy.cpp.obj: D:/Semeste
   C:/msys64/ucrt64/include/limits.h \
   C:/msys64/ucrt64/include/locale.h \
   C:/msys64/ucrt64/include/malloc.h \
+  C:/msys64/ucrt64/include/math.h \
   C:/msys64/ucrt64/include/process.h \
   C:/msys64/ucrt64/include/pthread.h \
   C:/msys64/ucrt64/include/pthread_compat.h \
@@ -2044,6 +2059,16 @@ src/bll/CMakeFiles/app_bll.dir/strategies/IOIGradingStrategy.cpp.obj: D:/Semeste
   D:/Semester\ 03/Local\ Online\ Judge/src/bll/strategies/IOIGradingStrategy.hpp
 
 
+C:/msys64/ucrt64/include/c++/15.2.0/tr1/poly_laguerre.tcc:
+
+C:/msys64/ucrt64/include/c++/15.2.0/tr1/modified_bessel_func.tcc:
+
+C:/msys64/ucrt64/include/c++/15.2.0/tr1/gamma.tcc:
+
+C:/msys64/ucrt64/include/c++/15.2.0/tr1/exp_integral.tcc:
+
+C:/msys64/ucrt64/include/c++/15.2.0/tr1/bessel_function.tcc:
+
 D:/Semester\ 03/Local\ Online\ Judge/src/bll/strategies/ICPCGradingStrategy.cpp:
 
 D:/Semester\ 03/Local\ Online\ Judge/src/bll/strategies/IOIGradingStrategy.hpp:
@@ -2051,6 +2076,8 @@ D:/Semester\ 03/Local\ Online\ Judge/src/bll/strategies/IOIGradingStrategy.hpp:
 C:/msys64/ucrt64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/xsaveoptintrin.h:
 
 C:/msys64/ucrt64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/wmmintrin.h:
+
+C:/msys64/ucrt64/include/c++/15.2.0/tr1/poly_hermite.tcc:
 
 C:/msys64/ucrt64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/wbnoinvdintrin.h:
 
@@ -2131,6 +2158,8 @@ C:/msys64/ucrt64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512vbmi2vlintrin.h
 C:/msys64/ucrt64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512ifmavlintrin.h:
 
 C:/msys64/ucrt64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512fp16vlintrin.h:
+
+C:/msys64/ucrt64/include/c++/15.2.0/tr1/riemann_zeta.tcc:
 
 C:/msys64/ucrt64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512fp16intrin.h:
 
@@ -2258,9 +2287,13 @@ C:/msys64/ucrt64/include/libloaderapi.h:
 
 C:/msys64/ucrt64/include/ktmtypes.h:
 
+C:/msys64/ucrt64/include/c++/15.2.0/tr1/hypergeometric.tcc:
+
 C:/msys64/ucrt64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx10_2-512mediaintrin.h:
 
 C:/msys64/ucrt64/include/jobapi.h:
+
+C:/msys64/ucrt64/include/c++/15.2.0/bits/specfun.h:
 
 C:/msys64/ucrt64/include/ioapiset.h:
 
@@ -2422,6 +2455,8 @@ C:/msys64/ucrt64/include/c++/15.2.0/bits/shared_ptr_atomic.h:
 
 C:/msys64/ucrt64/include/c++/15.2.0/bits/shared_ptr.h:
 
+C:/msys64/ucrt64/include/c++/15.2.0/tr1/legendre_function.tcc:
+
 C:/msys64/ucrt64/include/c++/15.2.0/cctype:
 
 C:/msys64/ucrt64/include/c++/15.2.0/bits/stl_iterator_base_funcs.h:
@@ -2492,6 +2527,8 @@ D:/Semester\ 03/Local\ Online\ Judge/src/dal/filesystem/FileSystemDAO.hpp:
 
 C:/msys64/ucrt64/include/c++/15.2.0/bits/chrono_io.h:
 
+C:/msys64/ucrt64/include/c++/15.2.0/tr1/ell_integral.tcc:
+
 D:/Semester\ 03/Local\ Online\ Judge/src/bll/strategies/IGradingStrategy.hpp:
 
 C:/msys64/ucrt64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/sm3intrin.h:
@@ -2503,6 +2540,8 @@ C:/msys64/ucrt64/include/pshpack8.h:
 C:/msys64/ucrt64/include/c++/15.2.0/bits/regex_compiler.h:
 
 C:/msys64/ucrt64/include/c++/15.2.0/bits/atomic_base.h:
+
+C:/msys64/ucrt64/include/c++/15.2.0/tr1/special_function_util.h:
 
 C:/msys64/ucrt64/include/c++/15.2.0/bits/allocated_ptr.h:
 
@@ -2542,6 +2581,8 @@ C:/msys64/ucrt64/include/c++/15.2.0/bits/monostate.h:
 
 C:/msys64/ucrt64/include/c++/15.2.0/initializer_list:
 
+C:/msys64/ucrt64/include/c++/15.2.0/cmath:
+
 C:/msys64/ucrt64/include/c++/15.2.0/bits/locale_facets.tcc:
 
 C:/msys64/ucrt64/include/c++/15.2.0/bits/parse_numbers.h:
@@ -2565,6 +2606,8 @@ C:/msys64/ucrt64/include/c++/15.2.0/bits/hash_bytes.h:
 C:/msys64/ucrt64/include/_timeval.h:
 
 C:/msys64/ucrt64/include/c++/15.2.0/bits/stl_algobase.h:
+
+C:/msys64/ucrt64/include/math.h:
 
 C:/msys64/ucrt64/include/c++/15.2.0/bits/fs_fwd.h:
 
@@ -2759,6 +2802,8 @@ C:/msys64/ucrt64/include/profileapi.h:
 C:/msys64/ucrt64/include/c++/15.2.0/debug/assertions.h:
 
 C:/msys64/ucrt64/include/c++/15.2.0/system_error:
+
+C:/msys64/ucrt64/include/c++/15.2.0/tr1/beta_function.tcc:
 
 C:/msys64/ucrt64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/xtestintrin.h:
 

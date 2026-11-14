@@ -1,11 +1,19 @@
 -- Local Online Judge Database Schema
--- Compatible with MySQL 8.0+
+-- Compatible with MySQL 8.0+ / TiDB Cloud
 
 CREATE DATABASE IF NOT EXISTS local_online_judge
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_unicode_ci;
 
 USE local_online_judge;
+
+-- Table: grading_sessions (Lưu các phiên chấm thi)
+CREATE TABLE IF NOT EXISTS grading_sessions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    session_name VARCHAR(128) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_completed TINYINT DEFAULT 0
+) ENGINE=InnoDB;
 
 -- Table: contestants
 CREATE TABLE IF NOT EXISTS contestants (
@@ -27,9 +35,10 @@ CREATE TABLE IF NOT EXISTS problems (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
--- Table: submissions
+-- Table: submissions (Bao gồm session_id)
 CREATE TABLE IF NOT EXISTS submissions (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    session_id INT NOT NULL DEFAULT 1,
     contestant_id INT NOT NULL,
     problem_id INT NOT NULL,
     source_file VARCHAR(255) NOT NULL,
@@ -64,6 +73,7 @@ CREATE TABLE IF NOT EXISTS submission_testcases (
 ) ENGINE=InnoDB;
 
 -- Indexes for fast Leaderboard queries
+CREATE INDEX idx_submission_session ON submissions(session_id);
 CREATE INDEX idx_submission_contestant ON submissions(contestant_id);
 CREATE INDEX idx_submission_problem ON submissions(problem_id);
 CREATE INDEX idx_submission_verdict ON submissions(verdict);

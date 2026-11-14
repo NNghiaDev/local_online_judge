@@ -202,6 +202,7 @@ src/gui/CMakeFiles/app_gui.dir/AppWindow.cpp.obj: \
  C:/msys64/ucrt64/include/c++/15.2.0/bits/unicode-data.h \
  D:\Semester\ 03\Local\ Online\ Judge\src\gui\views/TestcaseManagerView.hpp \
  D:\Semester\ 03\Local\ Online\ Judge\src\gui\views/LeaderboardView.hpp \
+ D:\Semester\ 03\Local\ Online\ Judge\src\gui\views/SubmissionHistoryView.hpp \
  D:\Semester\ 03\Local\ Online\ Judge\src\gui\views/ConsoleLogView.hpp \
  D:/Semester\ 03/Local\ Online\ Judge/src/common/Logger.hpp \
  C:/msys64/ucrt64/include/c++/15.2.0/mutex \

@@ -9,6 +9,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/app_gui.dir/views/DashboardView.cpp.obj.d"
   "CMakeFiles/app_gui.dir/views/LeaderboardView.cpp.obj"
   "CMakeFiles/app_gui.dir/views/LeaderboardView.cpp.obj.d"
+  "CMakeFiles/app_gui.dir/views/SubmissionHistoryView.cpp.obj"
+  "CMakeFiles/app_gui.dir/views/SubmissionHistoryView.cpp.obj.d"
   "CMakeFiles/app_gui.dir/views/TestcaseManagerView.cpp.obj"
   "CMakeFiles/app_gui.dir/views/TestcaseManagerView.cpp.obj.d"
 )

@@ -12,6 +12,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "D:/Semester 03/Local Online Judge/src/gui/views/ConsoleLogView.cpp" "src/gui/CMakeFiles/app_gui.dir/views/ConsoleLogView.cpp.obj" "gcc" "src/gui/CMakeFiles/app_gui.dir/views/ConsoleLogView.cpp.obj.d"
   "D:/Semester 03/Local Online Judge/src/gui/views/DashboardView.cpp" "src/gui/CMakeFiles/app_gui.dir/views/DashboardView.cpp.obj" "gcc" "src/gui/CMakeFiles/app_gui.dir/views/DashboardView.cpp.obj.d"
   "D:/Semester 03/Local Online Judge/src/gui/views/LeaderboardView.cpp" "src/gui/CMakeFiles/app_gui.dir/views/LeaderboardView.cpp.obj" "gcc" "src/gui/CMakeFiles/app_gui.dir/views/LeaderboardView.cpp.obj.d"
+  "D:/Semester 03/Local Online Judge/src/gui/views/SubmissionHistoryView.cpp" "src/gui/CMakeFiles/app_gui.dir/views/SubmissionHistoryView.cpp.obj" "gcc" "src/gui/CMakeFiles/app_gui.dir/views/SubmissionHistoryView.cpp.obj.d"
   "D:/Semester 03/Local Online Judge/src/gui/views/TestcaseManagerView.cpp" "src/gui/CMakeFiles/app_gui.dir/views/TestcaseManagerView.cpp.obj" "gcc" "src/gui/CMakeFiles/app_gui.dir/views/TestcaseManagerView.cpp.obj.d"
   )
 

@@ -30,6 +30,8 @@ SubmissionSummary JudgeEngine::gradeSingleFile(const fs::path& sourceFile,
     SubmissionSummary sub;
     sub.studentId = studentId.empty() ? "Anonymous" : studentId;
     sub.studentName = studentName.empty() ? sub.studentId : studentName;
+    sub.sessionId = SubmissionDAO::instance().getCurrentSessionId();
+    sub.sessionName = SubmissionDAO::instance().getCurrentSessionName();
     sub.problemId = problem.id;
     sub.problemCode = problem.problemCode;
     sub.sourceFilePath = sourceFile.string();
@@ -51,14 +53,46 @@ SubmissionSummary JudgeEngine::gradeSingleFile(const fs::path& sourceFile,
         return sub;
     }
 
-    // 2. Select Grading Strategy
+    // 2. Select Grading Strategy and prepare testcase weights
     auto strategy = GradingStrategyFactory::create(problem.gradingMode);
 
-    // 3. Testcase Execution Phase
-    int totalCount = static_cast<int>(testcases.size());
+    std::vector<TestcaseData> preparedTestcases = testcases;
+    int totalCount = static_cast<int>(preparedTestcases.size());
 
+    if (totalCount > 0) {
+        if (problem.gradingMode == GradingMode::IOI) {
+            if (!problem.ioiPoints.empty()) {
+                double assignedSum = 0.0;
+                for (int i = 0; i < totalCount; ++i) {
+                    if (i < static_cast<int>(problem.ioiPoints.size())) {
+                        preparedTestcases[i].maxPoints = problem.ioiPoints[i];
+                        assignedSum += problem.ioiPoints[i];
+                    } else {
+                        double rem = std::max(0.0, problem.totalScore - assignedSum);
+                        int remTests = totalCount - static_cast<int>(problem.ioiPoints.size());
+                        preparedTestcases[i].maxPoints = (remTests > 0) ? (rem / remTests) : 0.0;
+                    }
+                }
+            } else {
+                double sumExisting = 0.0;
+                for (const auto& tc : preparedTestcases) sumExisting += tc.maxPoints;
+                if (sumExisting <= 0.0) {
+                    double ptsPerTest = problem.totalScore / static_cast<double>(totalCount);
+                    for (auto& tc : preparedTestcases) tc.maxPoints = ptsPerTest;
+                }
+            }
+        } else {
+            // Chế độ EQUAL hoặc ICPC: Chia đều tổng điểm (problem.totalScore)
+            double ptsPerTest = problem.totalScore / static_cast<double>(totalCount);
+            for (auto& tc : preparedTestcases) {
+                tc.maxPoints = ptsPerTest;
+            }
+        }
+    }
+
+    // 3. Testcase Execution Phase
     for (int i = 0; i < totalCount; ++i) {
-        const auto& tc = testcases[i];
+        const auto& tc = preparedTestcases[i];
         if (m_progressCallback) {
             m_progressCallback(problem.problemCode, i + 1, totalCount);
         }
@@ -102,6 +136,7 @@ SubmissionSummary JudgeEngine::gradeSingleFile(const fs::path& sourceFile,
 
             if (isCorrect) {
                 tr.verdict = Verdict::AC;
+                tr.score = tc.maxPoints; // Award testcase weight
             } else {
                 tr.verdict = Verdict::WA;
                 tr.score = 0.0;
@@ -112,7 +147,9 @@ SubmissionSummary JudgeEngine::gradeSingleFile(const fs::path& sourceFile,
         Logger::instance().info("  Test #" + std::to_string(tr.testcaseIndex) + ": " +
                                 verdictToString(tr.verdict) + " (" +
                                 std::to_string(tr.executionTimeMs) + "ms, " +
-                                std::to_string(tr.peakMemoryKb) + "KB)");
+                                std::to_string(tr.peakMemoryKb) + "KB) - " +
+                                std::to_string(static_cast<int>(tr.score)) + "/" +
+                                std::to_string(static_cast<int>(tc.maxPoints)) + " pts");
 
         sub.testcaseResults.push_back(tr);
 
@@ -128,7 +165,7 @@ SubmissionSummary JudgeEngine::gradeSingleFile(const fs::path& sourceFile,
     fs::remove(comp.outputExecutablePath, ec);
 
     // 4. Final Verdict & Score Calculation via Grading Strategy
-    strategy->evaluate(sub, testcases, problem);
+    strategy->evaluate(sub, preparedTestcases, problem);
 
     Logger::instance().success("Verdict: " + verdictToString(sub.overallVerdict) + " (" +
                                std::to_string(static_cast<int>(sub.totalScore)) + "/" +

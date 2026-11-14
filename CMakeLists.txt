@@ -5,6 +5,12 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Use ar rcs directly to avoid Windows binutils ranlib file-lock / path bugs
+set(CMAKE_C_ARCHIVE_CREATE "<CMAKE_AR> rcs <TARGET> <LINK_FLAGS> <OBJECTS>")
+set(CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> rcs <TARGET> <LINK_FLAGS> <OBJECTS>")
+set(CMAKE_C_ARCHIVE_FINISH "")
+set(CMAKE_CXX_ARCHIVE_FINISH "")
+
 # Export compile commands for language servers
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 

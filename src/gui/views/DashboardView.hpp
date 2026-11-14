@@ -31,6 +31,8 @@ private:
     int m_timeLimitMs = 1000;
     int m_memoryLimitMb = 256;
     int m_gradingModeIdx = 2; // Mặc định: Equal (Chia đều điểm)
+    double m_totalScore = 100.0; // Điểm tối đa của bài thi (Ví dụ: 40 điểm, 100 điểm)
+    char m_ioiPointsStr[256] = "10, 30, 60"; // Điểm cho từng test khi ở chế độ IOI
 
     // Chấm thư mục 1 thí sinh
     char m_contestantFolderPath[256] = "contestants/NguyenVanA_22010001";

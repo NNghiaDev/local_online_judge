@@ -225,6 +225,30 @@ views/LeaderboardView.cpp.s:
 	cd /d "D:\Semester 03\Local Online Judge\build" && $(MAKE) $(MAKESILENT) -f src\gui\CMakeFiles\app_gui.dir\build.make src/gui/CMakeFiles/app_gui.dir/views/LeaderboardView.cpp.s
 .PHONY : views/LeaderboardView.cpp.s
 
+views/SubmissionHistoryView.obj: views/SubmissionHistoryView.cpp.obj
+.PHONY : views/SubmissionHistoryView.obj
+
+# target to build an object file
+views/SubmissionHistoryView.cpp.obj:
+	cd /d "D:\Semester 03\Local Online Judge\build" && $(MAKE) $(MAKESILENT) -f src\gui\CMakeFiles\app_gui.dir\build.make src/gui/CMakeFiles/app_gui.dir/views/SubmissionHistoryView.cpp.obj
+.PHONY : views/SubmissionHistoryView.cpp.obj
+
+views/SubmissionHistoryView.i: views/SubmissionHistoryView.cpp.i
+.PHONY : views/SubmissionHistoryView.i
+
+# target to preprocess a source file
+views/SubmissionHistoryView.cpp.i:
+	cd /d "D:\Semester 03\Local Online Judge\build" && $(MAKE) $(MAKESILENT) -f src\gui\CMakeFiles\app_gui.dir\build.make src/gui/CMakeFiles/app_gui.dir/views/SubmissionHistoryView.cpp.i
+.PHONY : views/SubmissionHistoryView.cpp.i
+
+views/SubmissionHistoryView.s: views/SubmissionHistoryView.cpp.s
+.PHONY : views/SubmissionHistoryView.s
+
+# target to generate assembly for a file
+views/SubmissionHistoryView.cpp.s:
+	cd /d "D:\Semester 03\Local Online Judge\build" && $(MAKE) $(MAKESILENT) -f src\gui\CMakeFiles\app_gui.dir\build.make src/gui/CMakeFiles/app_gui.dir/views/SubmissionHistoryView.cpp.s
+.PHONY : views/SubmissionHistoryView.cpp.s
+
 views/TestcaseManagerView.obj: views/TestcaseManagerView.cpp.obj
 .PHONY : views/TestcaseManagerView.obj
 
@@ -270,6 +294,9 @@ help:
 	@echo ... views/LeaderboardView.obj
 	@echo ... views/LeaderboardView.i
 	@echo ... views/LeaderboardView.s
+	@echo ... views/SubmissionHistoryView.obj
+	@echo ... views/SubmissionHistoryView.i
+	@echo ... views/SubmissionHistoryView.s
 	@echo ... views/TestcaseManagerView.obj
 	@echo ... views/TestcaseManagerView.i
 	@echo ... views/TestcaseManagerView.s

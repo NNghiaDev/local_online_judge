@@ -3,6 +3,7 @@
 #include "views/DashboardView.hpp"
 #include "views/TestcaseManagerView.hpp"
 #include "views/LeaderboardView.hpp"
+#include "views/SubmissionHistoryView.hpp"
 #include "views/ConsoleLogView.hpp"
 
 struct GLFWwindow;
@@ -24,11 +25,12 @@ private:
 
     GLFWwindow* m_window = nullptr;
     DashboardView m_dashboardView;
-    TestcaseManagerView m_testcaseView;
     LeaderboardView m_leaderboardView;
+    SubmissionHistoryView m_historyView;
+    TestcaseManagerView m_testcaseView;
     ConsoleLogView m_consoleView;
 
-    int m_activeTab = 0; // 0: Chấm bài & Dashboard, 1: Bảng xếp hạng, 2: Testcase & Lời giải mẫu, 3: Nhật ký hệ thống
+    int m_activeTab = 0; // 0: Chấm bài, 1: Bảng xếp hạng, 2: Lịch sử chấm, 3: Testcase, 4: Nhật ký Console
 };
 
 } // namespace loj

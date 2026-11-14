@@ -1,2 +1,1 @@
-C:\msys64\ucrt64\bin\ar.exe qc ..\..\lib\libapp_common.a CMakeFiles/app_common.dir/Logger.cpp.obj
-C:\msys64\ucrt64\bin\ranlib.exe ..\..\lib\libapp_common.a
+C:\msys64\ucrt64\bin\ar.exe rcs ..\..\lib\libapp_common.a CMakeFiles/app_common.dir/Logger.cpp.obj

@@ -277,6 +277,12 @@
 },
 {
   "directory": "D:/Semester 03/Local Online Judge/build/src/gui",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -DHAS_MYSQL=1 @CMakeFiles/app_gui.dir/includes_CXX.rsp -std=c++20 -o CMakeFiles\\app_gui.dir\\views\\SubmissionHistoryView.cpp.obj -c \"D:\\Semester 03\\Local Online Judge\\src\\gui\\views\\SubmissionHistoryView.cpp\"",
+  "file": "D:/Semester 03/Local Online Judge/src/gui/views/SubmissionHistoryView.cpp",
+  "output": "src/gui/CMakeFiles/app_gui.dir/views/SubmissionHistoryView.cpp.obj"
+},
+{
+  "directory": "D:/Semester 03/Local Online Judge/build/src/gui",
   "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -DHAS_MYSQL=1 @CMakeFiles/app_gui.dir/includes_CXX.rsp -std=c++20 -o CMakeFiles\\app_gui.dir\\views\\ConsoleLogView.cpp.obj -c \"D:\\Semester 03\\Local Online Judge\\src\\gui\\views\\ConsoleLogView.cpp\"",
   "file": "D:/Semester 03/Local Online Judge/src/gui/views/ConsoleLogView.cpp",
   "output": "src/gui/CMakeFiles/app_gui.dir/views/ConsoleLogView.cpp.obj"
