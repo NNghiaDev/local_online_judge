@@ -223,13 +223,16 @@ void SubmissionHistoryView::render() {
 
             // Nút xóa
             ImGui::TableSetColumnIndex(8);
-            std::string btnDel = "X##" + std::to_string(s.id);
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.70f, 0.20f, 0.20f, 0.8f));
-            if (ImGui::Button(btnDel.c_str(), ImVec2(50, 20))) {
+            std::string btnDel = "Xóa##" + std::to_string(s.id);
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.80f, 0.22f, 0.22f, 0.85f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.95f, 0.30f, 0.30f, 1.00f));
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 2.0f));
+            if (ImGui::Button(btnDel.c_str(), ImVec2(55, 24))) {
                 SubmissionDAO::instance().deleteSubmission(s.id);
                 refresh();
             }
-            ImGui::PopStyleColor();
+            ImGui::PopStyleVar();
+            ImGui::PopStyleColor(2);
         }
 
         ImGui::EndTable();

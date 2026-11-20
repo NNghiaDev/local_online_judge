@@ -213,13 +213,6 @@ bool LeaderboardDAO::exportToText(const std::filesystem::path& filePath, Grading
                 << std::setw(18) << e.totalPenaltyTime << "\n";
         }
     }
-            << std::setw(8)  << ("#" + std::to_string(e.rank))
-            << std::setw(18) << e.studentId
-            << std::setw(30) << e.studentName
-            << std::setw(14) << e.solvedCount
-            << std::setw(14) << (std::to_string(static_cast<int>(e.totalScore)) + " đ")
-            << std::setw(16) << e.totalPenaltyTime << "\n";
-    }
     out << "========================================================================================\n";
 
     out.close();

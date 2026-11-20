@@ -64,7 +64,7 @@ void DashboardView::render() {
     ImGui::InputInt("##dbPort", &m_dbPort);
 
     ImGui::NextColumn();
-    ImGui::Text("Tên Database:");
+    ImGui::Text("Tên Database (TiDB: test):");
     ImGui::SetNextItemWidth(-1.0f);
     ImGui::InputText("##dbName", m_dbName, sizeof(m_dbName));
 

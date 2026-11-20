@@ -343,12 +343,16 @@ bool SubmissionDAO::deleteContestant(const std::string& studentId) {
 
     auto& db = DatabaseConnection::instance();
     if (db.isConnected()) {
-        std::string sqlDelSub = "DELETE FROM submissions WHERE contestant_id = "
-                                "(SELECT id FROM contestants WHERE student_id = '" + studentId + "');";
-        db.execute(sqlDelSub);
+        db.execute("DELETE st FROM submission_testcases st "
+                   "JOIN submissions s ON st.submission_id = s.id "
+                   "JOIN contestants c ON s.contestant_id = c.id "
+                   "WHERE c.student_id = '" + studentId + "';");
 
-        std::string sqlDelContestant = "DELETE FROM contestants WHERE student_id = '" + studentId + "';";
-        db.execute(sqlDelContestant);
+        db.execute("DELETE s FROM submissions s "
+                   "JOIN contestants c ON s.contestant_id = c.id "
+                   "WHERE c.student_id = '" + studentId + "';");
+
+        db.execute("DELETE FROM contestants WHERE student_id = '" + studentId + "';");
     }
 
     Logger::instance().info("Đã xóa toàn bộ dữ liệu của thí sinh [" + studentId + "] khỏi hệ thống.");

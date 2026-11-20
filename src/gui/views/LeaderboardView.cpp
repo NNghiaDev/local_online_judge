@@ -255,11 +255,13 @@ void LeaderboardView::render() {
                 std::string btnDelId = "Xóa##" + entry.studentId;
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.80f, 0.22f, 0.22f, 0.85f));
                 ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.95f, 0.30f, 0.30f, 1.00f));
-                if (ImGui::Button(btnDelId.c_str(), ImVec2(60, 20))) {
+                ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 2.0f));
+                if (ImGui::Button(btnDelId.c_str(), ImVec2(60, 24))) {
                     m_contestantToDeleteId = entry.studentId;
                     m_contestantToDeleteName = entry.studentName;
                     m_showDeleteConfirmPopup = true;
                 }
+                ImGui::PopStyleVar();
                 ImGui::PopStyleColor(2);
             }
 
@@ -352,11 +354,13 @@ void LeaderboardView::render() {
                 std::string btnDelId = "Xóa##" + entry.studentId;
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.80f, 0.22f, 0.22f, 0.85f));
                 ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.95f, 0.30f, 0.30f, 1.00f));
-                if (ImGui::Button(btnDelId.c_str(), ImVec2(60, 20))) {
+                ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 2.0f));
+                if (ImGui::Button(btnDelId.c_str(), ImVec2(60, 24))) {
                     m_contestantToDeleteId = entry.studentId;
                     m_contestantToDeleteName = entry.studentName;
                     m_showDeleteConfirmPopup = true;
                 }
+                ImGui::PopStyleVar();
                 ImGui::PopStyleColor(2);
             }
 
@@ -424,96 +428,6 @@ void LeaderboardView::render() {
                     ImGui::Text("| Điểm: %.1f đ | Thời gian: %u ms | Bộ nhớ: %u KB | Nộp lúc: %s",
                                 sub.totalScore, sub.totalTimeMs, sub.maxMemoryKb, sub.submittedAt.c_str());
                 }
-            }
-        }
-    }
-
-    // Modal popup xác nhận xóa
-    if (m_showDeleteConfirmPopup) {
-        ImGui::OpenPopup("Xác Nhận Xóa");
-    }
-
-    ImVec2 center = ImGui::GetMainViewport()->GetCenter();
-    ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-    ImGui::SetNextWindowSize(ImVec2(440, 180));
-
-    if (ImGui::BeginPopupModal("Xác Nhận Xóa", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
-        ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "XÁC NHẬN XÓA THÍ SINH:");
-        ImGui::Separator();
-        ImGui::Spacing();
-        ImGui::Text("Bạn có chắc chắn muốn xóa thí sinh:");
-        ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f), "%s (MSSV: %s)?",
-                           m_contestantToDeleteName.c_str(), m_contestantToDeleteId.c_str());
-        ImGui::TextDisabled("Tất cả các bài nộp của thí sinh này sẽ bị xóa khỏi hệ thống.");
-        ImGui::Spacing();
-
-        if (ImGui::Button("Xóa Vĩnh Viễn", ImVec2(140, 30))) {
-            SubmissionDAO::instance().deleteContestant(m_contestantToDeleteId);
-            m_showDeleteConfirmPopup = false;
-            m_selectedEntryIndex = -1;
-            refresh();
-            ImGui::CloseCurrentPopup();
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Hủy Bỏ", ImVec2(100, 30))) {
-            m_showDeleteConfirmPopup = false;
-            ImGui::CloseCurrentPopup();
-        }
-        ImGui::EndPopup();
-    }
-}
-
-    // =========================================================================
-    // 4. CHI TIẾT BÀI THI CỦA THÍ SINH ĐƯỢC CHỌN
-    // =========================================================================
-    if (m_selectedEntryIndex >= 0 && m_selectedEntryIndex < static_cast<int>(filteredEntries.size())) {
-        const auto& selected = filteredEntries[m_selectedEntryIndex];
-        ImGui::Spacing();
-        ImGui::Separator();
-
-        ImGui::Columns(2, "DetailHeaderCols", false);
-        ImGui::SetColumnWidth(0, availW - 200.0f);
-
-        ImGui::TextColored(ImVec4(0.35f, 0.85f, 1.00f, 1.0f),
-                           "Chi tiết các bài thi của thí sinh: %s (MSSV: %s)",
-                           selected.studentName.c_str(), selected.studentId.c_str());
-
-        ImGui::NextColumn();
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.85f, 0.20f, 0.20f, 1.0f));
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.98f, 0.30f, 0.30f, 1.0f));
-        if (ImGui::Button("Xóa Thí Sinh Này", ImVec2(180, 26))) {
-            m_contestantToDeleteId = selected.studentId;
-            m_contestantToDeleteName = selected.studentName;
-            m_showDeleteConfirmPopup = true;
-        }
-        ImGui::PopStyleColor(2);
-
-        ImGui::Columns(1);
-        ImGui::Spacing();
-
-        auto contestantSubs = SubmissionDAO::instance().getSubmissionsByContestant(selected.studentId);
-        if (contestantSubs.empty()) {
-            ImGui::TextDisabled("Chưa có lịch sử bài thi.");
-        } else {
-            for (const auto& sub : contestantSubs) {
-                if (m_selectedSessionId > 0 && sub.sessionId != m_selectedSessionId) {
-                    continue;
-                }
-
-                ImVec4 verdictCol = ImVec4(0.20f, 0.90f, 0.40f, 1.0f);
-                std::string vStr = verdictToString(sub.overallVerdict);
-                if (sub.overallVerdict == Verdict::WA)       verdictCol = ImVec4(1.00f, 0.30f, 0.30f, 1.0f);
-                else if (sub.overallVerdict == Verdict::TLE) verdictCol = ImVec4(1.00f, 0.65f, 0.15f, 1.0f);
-                else if (sub.overallVerdict == Verdict::MLE) verdictCol = ImVec4(0.85f, 0.40f, 1.00f, 1.0f);
-                else if (sub.overallVerdict == Verdict::CE)  verdictCol = ImVec4(0.90f, 0.20f, 0.20f, 1.0f);
-
-                ImGui::Bullet();
-                ImGui::Text("[%s] Bài: %s", sub.sessionName.c_str(), sub.problemCode.c_str());
-                ImGui::SameLine();
-                ImGui::TextColored(verdictCol, "[%s]", vStr.c_str());
-                ImGui::SameLine();
-                ImGui::Text("| Điểm: %.1f | Thời gian: %u ms | Bộ nhớ: %u KB | Nộp lúc: %s",
-                            sub.totalScore, sub.totalTimeMs, sub.maxMemoryKb, sub.submittedAt.c_str());
             }
         }
     }

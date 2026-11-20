@@ -39,6 +39,7 @@ void AppWindow::setupVibrantModernTheme() {
     style.ItemSpacing       = ImVec2(10.0f, 8.0f);
     style.ItemInnerSpacing  = ImVec2(8.0f, 6.0f);
     style.ScrollbarSize     = 14.0f;
+    style.ButtonTextAlign   = ImVec2(0.5f, 0.42f); // Căn giữa quang học chữ tiếng Việt trên button
 
     // Bảng màu rực rỡ, hiện đại, độ tương phản cao (Vibrant Slate & Electric Blue)
     colors[ImGuiCol_Text]                  = ImVec4(0.96f, 0.97f, 0.99f, 1.00f); // Trắng sáng rõ chữ

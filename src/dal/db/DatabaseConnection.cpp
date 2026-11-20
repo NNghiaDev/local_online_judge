@@ -27,6 +27,14 @@ DatabaseConnection& DatabaseConnection::instance() {
 }
 
 bool DatabaseConnection::connect(const DbConfig& config) {
+    if (config.database == "sys" || config.database == "mysql" ||
+        config.database == "information_schema" || config.database == "performance_schema") {
+        Logger::instance().error("CSDL '" + config.database + "' là CSDL hệ thống nội bộ bị máy chủ cấm tạo bảng! Vui lòng đổi sang database 'test' hoặc CSDL riêng.");
+        m_isConnecting = false;
+        m_connected = false;
+        return false;
+    }
+
     m_config = config;
     m_isConnecting = true;
 
