@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 #include <cstdint>
 #include <chrono>
 
@@ -112,6 +113,15 @@ struct SubmissionSummary {
     std::string submittedAt;
 };
 
+// Chi tiết kết quả của từng bài toán con trong cụm bài
+struct ProblemResultDetail {
+    bool attempted = false;
+    bool isAC = false;
+    Verdict verdict = Verdict::PENDING;
+    double score = 0.0;
+    uint32_t timeMs = 0;
+};
+
 // Leaderboard row entry
 struct LeaderboardEntry {
     int rank = 1;
@@ -123,6 +133,7 @@ struct LeaderboardEntry {
     uint32_t totalPenaltyTime = 0; // For ICPC mode
     std::vector<std::pair<std::string, double>> problemScores; // problemCode -> score (for IOI/Equal)
     std::vector<std::pair<std::string, bool>> problemSolvedStatus; // problemCode -> isAC (for ICPC)
+    std::map<std::string, ProblemResultDetail> problemDetails; // problemCode -> ProblemResultDetail
 };
 
 // Problem specifications

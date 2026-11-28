@@ -1,6 +1,7 @@
 #include "DashboardView.hpp"
 #include "bll/JudgeEngine.hpp"
 #include "dal/db/DatabaseConnection.hpp"
+#include "dal/db/SubmissionDAO.hpp"
 #include "dal/filesystem/FileSystemDAO.hpp"
 #include "common/Logger.hpp"
 #include <imgui.h>
@@ -310,6 +311,43 @@ void DashboardView::render() {
     // 4. HÀNH ĐỘNG CHẤM BÀI
     // =========================================================================
     ImGui::Separator();
+    ImGui::Spacing();
+
+    // Hiển thị và quản lý phiên chấm hiện tại
+    auto sessions = SubmissionDAO::instance().getAllSessions();
+    int curSessId = SubmissionDAO::instance().getCurrentSessionId();
+    std::string curSessName = SubmissionDAO::instance().getCurrentSessionName();
+
+    ImGui::Text("Phiên chấm hiện tại:");
+    ImGui::SameLine();
+    ImGui::TextColored(ImVec4(0.25f, 0.85f, 1.0f, 1.0f), "%s", curSessName.c_str());
+    ImGui::SameLine(0, 15.0f);
+
+    std::vector<std::string> sessionLabels;
+    int curComboIdx = 0;
+    for (size_t i = 0; i < sessions.size(); ++i) {
+        sessionLabels.push_back(sessions[i].sessionName);
+        if (sessions[i].id == curSessId) curComboIdx = static_cast<int>(i);
+    }
+    ImGui::SetNextItemWidth(170.0f);
+    if (!sessionLabels.empty() && ImGui::BeginCombo("##DashboardSessionSelect", sessionLabels[curComboIdx].c_str())) {
+        for (int i = 0; i < static_cast<int>(sessionLabels.size()); ++i) {
+            bool isSelected = (curComboIdx == i);
+            if (ImGui::Selectable(sessionLabels[i].c_str(), isSelected)) {
+                SubmissionDAO::instance().setCurrentSession(sessions[i].id);
+            }
+            if (isSelected) ImGui::SetItemDefaultFocus();
+        }
+        ImGui::EndCombo();
+    }
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.20f, 0.55f, 0.85f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.28f, 0.65f, 0.95f, 1.0f));
+    if (ImGui::Button("+ Phiên Mới##Dash", ImVec2(95, 24))) {
+        SubmissionDAO::instance().startNewSession();
+    }
+    ImGui::PopStyleColor(2);
+
     ImGui::Spacing();
 
     if (m_isGrading) {

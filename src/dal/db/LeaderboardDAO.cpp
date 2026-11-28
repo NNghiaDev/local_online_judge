@@ -2,6 +2,7 @@
 #include "SubmissionDAO.hpp"
 #include "common/Logger.hpp"
 #include <map>
+#include <set>
 #include <algorithm>
 #include <fstream>
 #include <iomanip>
@@ -11,6 +12,19 @@ namespace loj {
 LeaderboardDAO& LeaderboardDAO::instance() {
     static LeaderboardDAO s_instance;
     return s_instance;
+}
+
+std::vector<std::string> LeaderboardDAO::getSessionProblemCodes(int sessionId) {
+    auto allSubmissions = SubmissionDAO::instance().getAllSubmissions();
+    std::set<std::string> pSet;
+    for (const auto& s : allSubmissions) {
+        if (sessionId == 0 || s.sessionId == sessionId) {
+            if (!s.problemCode.empty()) {
+                pSet.insert(s.problemCode);
+            }
+        }
+    }
+    return std::vector<std::string>(pSet.begin(), pSet.end());
 }
 
 std::vector<LeaderboardEntry> LeaderboardDAO::generateLeaderboard(GradingMode mode, int sessionId) {
@@ -30,9 +44,7 @@ std::vector<LeaderboardEntry> LeaderboardDAO::generateLeaderboard(GradingMode mo
     struct ContestantAgg {
         std::string studentId;
         std::string studentName;
-        std::map<std::string, double> problemBestScore;
-        std::map<std::string, bool> problemSolved;
-        std::map<std::string, uint32_t> problemTime;
+        std::map<std::string, ProblemResultDetail> problems;
     };
 
     std::map<std::string, ContestantAgg> aggMap;
@@ -46,15 +58,25 @@ std::vector<LeaderboardEntry> LeaderboardDAO::generateLeaderboard(GradingMode mo
             agg.studentName = sub.studentId;
         }
 
-        if (agg.problemBestScore.find(sub.problemCode) == agg.problemBestScore.end() || sub.totalScore > agg.problemBestScore[sub.problemCode]) {
-            agg.problemBestScore[sub.problemCode] = sub.totalScore;
-            agg.problemTime[sub.problemCode] = sub.totalTimeMs;
-        }
+        auto& pDetail = agg.problems[sub.problemCode];
+        pDetail.attempted = true;
 
         if (sub.overallVerdict == Verdict::AC) {
-            agg.problemSolved[sub.problemCode] = true;
-            if (agg.problemTime[sub.problemCode] == 0 || sub.totalTimeMs < agg.problemTime[sub.problemCode]) {
-                agg.problemTime[sub.problemCode] = sub.totalTimeMs;
+            pDetail.isAC = true;
+            pDetail.verdict = Verdict::AC;
+            pDetail.score = std::max(pDetail.score, sub.totalScore);
+            if (pDetail.timeMs == 0 || sub.totalTimeMs < pDetail.timeMs) {
+                pDetail.timeMs = sub.totalTimeMs;
+            }
+        } else {
+            if (!pDetail.isAC) {
+                pDetail.verdict = sub.overallVerdict;
+                if (sub.totalScore > pDetail.score) {
+                    pDetail.score = sub.totalScore;
+                }
+            }
+            if (pDetail.timeMs == 0) {
+                pDetail.timeMs = sub.totalTimeMs;
             }
         }
     }
@@ -65,20 +87,16 @@ std::vector<LeaderboardEntry> LeaderboardDAO::generateLeaderboard(GradingMode mo
         entry.sessionId = sessionId;
         entry.studentId = agg.studentId;
         entry.studentName = agg.studentName;
+        entry.problemDetails = agg.problems;
 
-        for (const auto& [prob, score] : agg.problemBestScore) {
-            entry.totalScore += score;
-            entry.problemScores.emplace_back(prob, score);
-            if (agg.problemTime.count(prob)) {
-                entry.totalPenaltyTime += agg.problemTime.at(prob);
-            }
-        }
-
-        for (const auto& [prob, solved] : agg.problemSolved) {
-            entry.problemSolvedStatus.emplace_back(prob, solved);
-            if (solved) {
+        for (const auto& [prob, detail] : agg.problems) {
+            entry.totalScore += detail.score;
+            entry.problemScores.emplace_back(prob, detail.score);
+            entry.problemSolvedStatus.emplace_back(prob, detail.isAC);
+            if (detail.isAC) {
                 entry.solvedCount++;
             }
+            entry.totalPenaltyTime += detail.timeMs;
         }
 
         leaderboard.push_back(entry);
@@ -125,6 +143,7 @@ std::vector<LeaderboardEntry> LeaderboardDAO::generateLeaderboard(GradingMode mo
 
 bool LeaderboardDAO::exportToCSV(const std::filesystem::path& filePath, GradingMode mode, int sessionId) {
     auto entries = generateLeaderboard(mode, sessionId);
+    auto problemCodes = getSessionProblemCodes(sessionId);
 
     std::ofstream out(filePath, std::ios::out | std::ios::binary);
     if (!out.is_open()) {
@@ -138,21 +157,46 @@ bool LeaderboardDAO::exportToCSV(const std::filesystem::path& filePath, GradingM
 
     // Tiêu đề cột tương ứng theo chế độ
     if (mode == GradingMode::ICPC) {
-        out << "Thứ Hạng,Mã Số Sinh Viên (MSSV),Họ Và Tên Thí Sinh,Số Bài Đúng (AC),Thời Gian Phạt (ms)\n";
+        out << "Thứ Hạng,Mã Số Sinh Viên (MSSV),Họ Và Tên Thí Sinh,Số Bài Đúng (AC),Thời Gian Phạt (ms)";
+        for (const auto& p : problemCodes) {
+            out << ",\"" << p << "\"";
+        }
+        out << "\n";
         for (const auto& e : entries) {
             out << e.rank << ",\""
                 << e.studentId << "\",\""
                 << e.studentName << "\","
                 << e.solvedCount << ","
-                << e.totalPenaltyTime << "\n";
+                << e.totalPenaltyTime;
+            for (const auto& p : problemCodes) {
+                auto it = e.problemDetails.find(p);
+                if (it != e.problemDetails.end()) {
+                    out << ",\"" << (it->second.isAC ? "AC" : verdictToString(it->second.verdict)) << "\"";
+                } else {
+                    out << ",\"-\"";
+                }
+            }
+            out << "\n";
         }
     } else {
-        out << "Thứ Hạng,Mã Số Sinh Viên (MSSV),Họ Và Tên Thí Sinh,Tổng Điểm Số,Thời Gian (ms)\n";
+        out << "Thứ Hạng,Mã Số Sinh Viên (MSSV),Họ Và Tên Thí Sinh";
+        for (const auto& p : problemCodes) {
+            out << ",\"" << p << "\"";
+        }
+        out << ",Tổng Điểm Số,Thời Gian (ms)\n";
         for (const auto& e : entries) {
             out << e.rank << ",\""
                 << e.studentId << "\",\""
-                << e.studentName << "\","
-                << std::fixed << std::setprecision(1) << e.totalScore << ","
+                << e.studentName << "\"";
+            for (const auto& p : problemCodes) {
+                auto it = e.problemDetails.find(p);
+                if (it != e.problemDetails.end()) {
+                    out << "," << std::fixed << std::setprecision(1) << it->second.score;
+                } else {
+                    out << ",\"-\"";
+                }
+            }
+            out << "," << std::fixed << std::setprecision(1) << e.totalScore << ","
                 << e.totalPenaltyTime << "\n";
         }
     }

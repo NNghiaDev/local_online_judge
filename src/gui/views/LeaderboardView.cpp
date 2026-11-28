@@ -4,6 +4,7 @@
 #include <imgui.h>
 #include <filesystem>
 #include <algorithm>
+#include <set>
 #include <cmath>
 
 namespace loj {
@@ -87,6 +88,33 @@ void LeaderboardView::render() {
     }
     ImGui::PopStyleColor(2);
 
+    if (m_selectedSessionId > 0) {
+        // Nút Xóa Phiên
+        ImGui::SameLine();
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.80f, 0.22f, 0.22f, 0.85f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.95f, 0.30f, 0.30f, 1.00f));
+        if (ImGui::Button("Xóa Phiên", ImVec2(80, 26))) {
+            m_sessionToDeleteId = m_selectedSessionId;
+            m_showDeleteSessionModal = true;
+        }
+        ImGui::PopStyleColor(2);
+
+        // Nút Đặt làm phiên đang chấm (nếu chưa phải phiên hiện tại)
+        if (m_selectedSessionId != SubmissionDAO::instance().getCurrentSessionId()) {
+            ImGui::SameLine();
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.18f, 0.60f, 0.40f, 0.90f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.22f, 0.75f, 0.48f, 1.00f));
+            if (ImGui::Button("Đặt Làm Phiên Hiện Tại", ImVec2(165, 26))) {
+                SubmissionDAO::instance().setCurrentSession(m_selectedSessionId);
+                refresh();
+            }
+            ImGui::PopStyleColor(2);
+        } else {
+            ImGui::SameLine();
+            ImGui::TextColored(ImVec4(0.20f, 0.90f, 0.45f, 1.0f), "[Đang Chấm]");
+        }
+    }
+
     ImGui::SameLine(0, 14.0f);
     ImGui::Text("Chế độ:");
     ImGui::SameLine();
@@ -158,28 +186,50 @@ void LeaderboardView::render() {
         }
     }
 
+    // Lấy danh sách các bài toán con trong phiên chấm (được sắp xếp gọn gàng A-Z)
+    std::vector<std::string> sortedProblems = LeaderboardDAO::instance().getSessionProblemCodes(m_selectedSessionId);
+    if (sortedProblems.empty()) {
+        std::set<std::string> pSet;
+        for (const auto& e : filteredEntries) {
+            for (const auto& [p, _] : e.problemDetails) pSet.insert(p);
+            for (const auto& [p, _] : e.problemScores) pSet.insert(p);
+            for (const auto& [p, _] : e.problemSolvedStatus) pSet.insert(p);
+        }
+        sortedProblems.assign(pSet.begin(), pSet.end());
+    }
+
     // =========================================================================
     // 3. BẢNG XẾP HẠNG TÙY BIẾN CỘT CHUẨN XÁC THEO TỪNG CHẾ ĐỘ
     // =========================================================================
     static ImGuiTableFlags tableFlags = ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable |
                                        ImGuiTableFlags_Hideable | ImGuiTableFlags_RowBg |
                                        ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV |
-                                       ImGuiTableFlags_ScrollY;
+                                       ImGuiTableFlags_ScrollY | ImGuiTableFlags_ScrollX;
 
     float tableHeight = (m_selectedEntryIndex >= 0) ? 310.0f : ImGui::GetContentRegionAvail().y - 10.0f;
     if (tableHeight < 180.0f) tableHeight = 180.0f;
 
     // -------------------------------------------------------------------------
-    // A. CHẾ ĐỘ ICPC: KHÔNG CÓ CỘT TỔNG ĐIỂM (Chỉ có Hạng, MSSV, Tên, Số bài đúng, Phạt, Chi tiết bài AC, Xóa)
+    // A. CHẾ ĐỘ ICPC: KHÔNG CÓ CỘT TỔNG ĐIỂM
+    // Cột: Hạng | MSSV | Họ và Tên | Số Bài Đúng | Thời Gian Phạt | [Bài 1] | [Bài 2] ... | Thao Tác
     // -------------------------------------------------------------------------
     if (m_currentMode == GradingMode::ICPC) {
-        if (ImGui::BeginTable("BangXepHang_ICPC", 7, tableFlags, ImVec2(0, tableHeight))) {
+        int numCols = 6 + static_cast<int>(sortedProblems.size());
+        if (ImGui::BeginTable("BangXepHang_ICPC", numCols, tableFlags, ImVec2(0, tableHeight))) {
             ImGui::TableSetupColumn("Hạng", ImGuiTableColumnFlags_WidthFixed, 75.0f);
-            ImGui::TableSetupColumn("MSSV", ImGuiTableColumnFlags_WidthFixed, 140.0f);
-            ImGui::TableSetupColumn("Họ Và Tên", ImGuiTableColumnFlags_WidthFixed, 200.0f);
-            ImGui::TableSetupColumn("Số Bài Đúng (AC)", ImGuiTableColumnFlags_WidthFixed, 130.0f);
-            ImGui::TableSetupColumn("Thời Gian Phạt (ms)", ImGuiTableColumnFlags_WidthFixed, 150.0f);
-            ImGui::TableSetupColumn("Chi Tiết Từng Bài (ICPC)", ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableSetupColumn("MSSV", ImGuiTableColumnFlags_WidthFixed, 130.0f);
+            ImGui::TableSetupColumn("Họ Và Tên", ImGuiTableColumnFlags_WidthFixed, 190.0f);
+            ImGui::TableSetupColumn("Số Bài Đúng", ImGuiTableColumnFlags_WidthFixed, 110.0f);
+            ImGui::TableSetupColumn("Thời Gian (ms)", ImGuiTableColumnFlags_WidthFixed, 120.0f);
+
+            for (const auto& pCode : sortedProblems) {
+                std::string colTitle = "[" + pCode + "]";
+                ImGui::TableSetupColumn(colTitle.c_str(), ImGuiTableColumnFlags_WidthFixed, 95.0f);
+            }
+            if (sortedProblems.empty()) {
+                ImGui::TableSetupColumn("Bài Giải", ImGuiTableColumnFlags_WidthFixed, 95.0f);
+            }
+
             ImGui::TableSetupColumn("Thao Tác", ImGuiTableColumnFlags_WidthFixed, 75.0f);
             ImGui::TableHeadersRow();
 
@@ -226,32 +276,50 @@ void LeaderboardView::render() {
                 ImGui::TableSetColumnIndex(2);
                 ImGui::Text("%s", entry.studentName.c_str());
 
-                // Cột 3: Số bài đúng (AC) - ICPC
+                // Cột 3: Số bài đúng (AC) - ICPC (Không dùng ký tự lạ gây dấu ? trên giao diện)
                 ImGui::TableSetColumnIndex(3);
-                ImGui::TextColored(ImVec4(0.20f, 0.95f, 0.45f, 1.0f), "★ %d bài", entry.solvedCount);
+                ImGui::TextColored(ImVec4(0.20f, 0.95f, 0.45f, 1.0f), "%d bài", entry.solvedCount);
 
                 // Cột 4: Thời gian phạt (ms)
                 ImGui::TableSetColumnIndex(4);
                 ImGui::Text("%u ms", entry.totalPenaltyTime);
 
-                // Cột 5: Chi tiết từng bài chuẩn ICPC (AC hoặc WA, không hiển thị điểm số)
-                ImGui::TableSetColumnIndex(5);
-                if (entry.problemSolvedStatus.empty()) {
-                    ImGui::TextDisabled("-");
-                } else {
-                    for (size_t p = 0; p < entry.problemSolvedStatus.size(); ++p) {
-                        if (p > 0) ImGui::SameLine();
-                        const auto& [pCode, isAc] = entry.problemSolvedStatus[p];
-                        if (isAc) {
-                            ImGui::TextColored(ImVec4(0.20f, 0.90f, 0.40f, 1.0f), "[%s: AC]", pCode.c_str());
+                // Cột từng bài con (Tách riêng từng cột bài)
+                int colIdx = 5;
+                for (const auto& pCode : sortedProblems) {
+                    ImGui::TableSetColumnIndex(colIdx++);
+                    auto it = entry.problemDetails.find(pCode);
+                    if (it != entry.problemDetails.end()) {
+                        const auto& pDet = it->second;
+                        if (pDet.isAC) {
+                            ImGui::TextColored(ImVec4(0.20f, 0.90f, 0.40f, 1.0f), "AC (%ums)", pDet.timeMs);
+                        } else if (pDet.attempted) {
+                            std::string vStr = verdictToString(pDet.verdict);
+                            ImGui::TextColored(ImVec4(0.90f, 0.30f, 0.30f, 1.0f), "%s", vStr.c_str());
                         } else {
-                            ImGui::TextColored(ImVec4(0.90f, 0.30f, 0.30f, 1.0f), "[%s: WA]", pCode.c_str());
+                            ImGui::TextDisabled("-");
                         }
+                    } else {
+                        // Fallback check backwards-compatible problemSolvedStatus
+                        bool found = false;
+                        for (const auto& [code, isAc] : entry.problemSolvedStatus) {
+                            if (code == pCode) {
+                                found = true;
+                                if (isAc) ImGui::TextColored(ImVec4(0.20f, 0.90f, 0.40f, 1.0f), "AC");
+                                else ImGui::TextColored(ImVec4(0.90f, 0.30f, 0.30f, 1.0f), "WA");
+                                break;
+                            }
+                        }
+                        if (!found) ImGui::TextDisabled("-");
                     }
                 }
+                if (sortedProblems.empty()) {
+                    ImGui::TableSetColumnIndex(colIdx++);
+                    ImGui::TextDisabled("-");
+                }
 
-                // Cột 6: Thao tác Xóa thí sinh
-                ImGui::TableSetColumnIndex(6);
+                // Cột Thao tác: Xóa thí sinh
+                ImGui::TableSetColumnIndex(colIdx++);
                 std::string btnDelId = "Xóa##" + entry.studentId;
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.80f, 0.22f, 0.22f, 0.85f));
                 ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.95f, 0.30f, 0.30f, 1.00f));
@@ -269,16 +337,26 @@ void LeaderboardView::render() {
         }
     }
     // -------------------------------------------------------------------------
-    // B. CHẾ ĐỘ IOI / EQUAL: KHÔNG CÓ CỘT SỐ BÀI ĐÚNG (Có Hạng, MSSV, Tên, Chi tiết điểm từng bài, Tổng Điểm, Thời gian, Xóa)
+    // B. CHẾ ĐỘ IOI / EQUAL: KHÔNG CÓ CỘT SỐ BÀI ĐÚNG
+    // Cột: Hạng | MSSV | Họ và Tên | [Bài 1] | [Bài 2] ... | Tổng Điểm | Thời Gian | Thao Tác
     // -------------------------------------------------------------------------
     else {
-        if (ImGui::BeginTable("BangXepHang_Score", 7, tableFlags, ImVec2(0, tableHeight))) {
+        int numCols = 6 + static_cast<int>(sortedProblems.size());
+        if (ImGui::BeginTable("BangXepHang_Score", numCols, tableFlags, ImVec2(0, tableHeight))) {
             ImGui::TableSetupColumn("Hạng", ImGuiTableColumnFlags_WidthFixed, 75.0f);
-            ImGui::TableSetupColumn("MSSV", ImGuiTableColumnFlags_WidthFixed, 140.0f);
-            ImGui::TableSetupColumn("Họ Và Tên", ImGuiTableColumnFlags_WidthFixed, 200.0f);
-            ImGui::TableSetupColumn("Chi Tiết Điểm Từng Bài", ImGuiTableColumnFlags_WidthStretch);
-            ImGui::TableSetupColumn("Tổng Điểm", ImGuiTableColumnFlags_WidthFixed, 130.0f);
-            ImGui::TableSetupColumn("Thời Gian (ms)", ImGuiTableColumnFlags_WidthFixed, 140.0f);
+            ImGui::TableSetupColumn("MSSV", ImGuiTableColumnFlags_WidthFixed, 130.0f);
+            ImGui::TableSetupColumn("Họ Và Tên", ImGuiTableColumnFlags_WidthFixed, 190.0f);
+
+            for (const auto& pCode : sortedProblems) {
+                std::string colTitle = "[" + pCode + "]";
+                ImGui::TableSetupColumn(colTitle.c_str(), ImGuiTableColumnFlags_WidthFixed, 95.0f);
+            }
+            if (sortedProblems.empty()) {
+                ImGui::TableSetupColumn("Điểm Bài", ImGuiTableColumnFlags_WidthFixed, 95.0f);
+            }
+
+            ImGui::TableSetupColumn("Tổng Điểm", ImGuiTableColumnFlags_WidthFixed, 110.0f);
+            ImGui::TableSetupColumn("Thời Gian (ms)", ImGuiTableColumnFlags_WidthFixed, 115.0f);
             ImGui::TableSetupColumn("Thao Tác", ImGuiTableColumnFlags_WidthFixed, 75.0f);
             ImGui::TableHeadersRow();
 
@@ -325,32 +403,51 @@ void LeaderboardView::render() {
                 ImGui::TableSetColumnIndex(2);
                 ImGui::Text("%s", entry.studentName.c_str());
 
-                // Cột 3: Chi tiết điểm từng bài
-                ImGui::TableSetColumnIndex(3);
-                if (entry.problemScores.empty()) {
-                    ImGui::TextDisabled("-");
-                } else {
-                    for (size_t p = 0; p < entry.problemScores.size(); ++p) {
-                        if (p > 0) ImGui::SameLine();
-                        const auto& [pCode, pScore] = entry.problemScores[p];
-                        if (pScore > 0.0) {
-                            ImGui::TextColored(ImVec4(0.20f, 0.85f, 0.40f, 1.0f), "[%s: %.1f đ]", pCode.c_str(), pScore);
+                // Cột từng bài con (Tách riêng từng cột bài)
+                int colIdx = 3;
+                for (const auto& pCode : sortedProblems) {
+                    ImGui::TableSetColumnIndex(colIdx++);
+                    auto it = entry.problemDetails.find(pCode);
+                    if (it != entry.problemDetails.end()) {
+                        const auto& pDet = it->second;
+                        if (pDet.attempted) {
+                            if (pDet.score > 0.0) {
+                                ImGui::TextColored(ImVec4(0.20f, 0.85f, 0.40f, 1.0f), "%.1f đ", pDet.score);
+                            } else {
+                                ImGui::TextColored(ImVec4(0.60f, 0.60f, 0.60f, 1.0f), "0.0 đ");
+                            }
                         } else {
-                            ImGui::TextColored(ImVec4(0.60f, 0.60f, 0.60f, 1.0f), "[%s: 0 đ]", pCode.c_str());
+                            ImGui::TextDisabled("-");
                         }
+                    } else {
+                        // Fallback check backwards-compatible problemScores
+                        bool found = false;
+                        for (const auto& [code, score] : entry.problemScores) {
+                            if (code == pCode) {
+                                found = true;
+                                if (score > 0.0) ImGui::TextColored(ImVec4(0.20f, 0.85f, 0.40f, 1.0f), "%.1f đ", score);
+                                else ImGui::TextColored(ImVec4(0.60f, 0.60f, 0.60f, 1.0f), "0.0 đ");
+                                break;
+                            }
+                        }
+                        if (!found) ImGui::TextDisabled("-");
                     }
                 }
+                if (sortedProblems.empty()) {
+                    ImGui::TableSetColumnIndex(colIdx++);
+                    ImGui::TextDisabled("-");
+                }
 
-                // Cột 4: Tổng điểm (Điểm đạt được của thí sinh theo đúng thang điểm đã đặt, ví dụ 50đ, 100đ)
-                ImGui::TableSetColumnIndex(4);
+                // Cột: Tổng điểm
+                ImGui::TableSetColumnIndex(colIdx++);
                 ImGui::TextColored(ImVec4(0.25f, 0.80f, 1.00f, 1.0f), "%.1f đ", entry.totalScore);
 
-                // Cột 5: Thời gian chạy (ms)
-                ImGui::TableSetColumnIndex(5);
+                // Cột: Thời gian chạy (ms)
+                ImGui::TableSetColumnIndex(colIdx++);
                 ImGui::Text("%u ms", entry.totalPenaltyTime);
 
-                // Cột 6: Thao tác Xóa thí sinh
-                ImGui::TableSetColumnIndex(6);
+                // Cột Thao tác: Xóa thí sinh
+                ImGui::TableSetColumnIndex(colIdx++);
                 std::string btnDelId = "Xóa##" + entry.studentId;
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.80f, 0.22f, 0.22f, 0.85f));
                 ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.95f, 0.30f, 0.30f, 1.00f));
@@ -461,6 +558,38 @@ void LeaderboardView::render() {
         ImGui::SameLine();
         if (ImGui::Button("Hủy Bỏ", ImVec2(100, 30))) {
             m_showDeleteConfirmPopup = false;
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+    }
+
+    // Modal popup xác nhận xóa phiên
+    if (m_showDeleteSessionModal) {
+        ImGui::OpenPopup("Xác Nhận Xóa Phiên##Modal");
+    }
+
+    if (ImGui::BeginPopupModal("Xác Nhận Xóa Phiên##Modal", &m_showDeleteSessionModal, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::TextColored(ImVec4(1.0f, 0.35f, 0.35f, 1.0f), "XÁC NHẬN XÓA PHIÊN CHẤM:");
+        ImGui::Separator();
+        ImGui::Spacing();
+        ImGui::Text("Bạn có chắc chắn muốn xóa [Phiên #%d] không?", m_sessionToDeleteId);
+        ImGui::TextColored(ImVec4(1.0f, 0.75f, 0.2f, 1.0f), "CẢNH BÁO: Mọi bài nộp và kết quả chấm thuộc phiên này sẽ bị xóa hoàn toàn.");
+        ImGui::Spacing();
+
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.80f, 0.22f, 0.22f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.95f, 0.30f, 0.30f, 1.0f));
+        if (ImGui::Button("Xóa Phiên Này", ImVec2(140, 30))) {
+            SubmissionDAO::instance().deleteSession(m_sessionToDeleteId);
+            m_selectedSessionId = 0;
+            m_showDeleteSessionModal = false;
+            refresh();
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::PopStyleColor(2);
+
+        ImGui::SameLine(0, 14.0f);
+        if (ImGui::Button("Hủy Bỏ", ImVec2(100, 30))) {
+            m_showDeleteSessionModal = false;
             ImGui::CloseCurrentPopup();
         }
         ImGui::EndPopup();

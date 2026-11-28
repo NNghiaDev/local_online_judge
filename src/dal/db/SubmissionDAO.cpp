@@ -1,6 +1,7 @@
 #include "SubmissionDAO.hpp"
 #include "DatabaseConnection.hpp"
 #include "common/Logger.hpp"
+#include <fstream>
 #include <sstream>
 #include <iomanip>
 #include <algorithm>
@@ -16,6 +17,8 @@ SubmissionDAO::SubmissionDAO() {
     m_sessions.push_back(initSession);
     m_currentSessionId = 1;
     m_currentSessionName = "Phiên #1";
+
+    loadCurrentSessionState();
 }
 
 SubmissionDAO& SubmissionDAO::instance() {
@@ -47,6 +50,44 @@ std::string SubmissionDAO::getCurrentSessionName() const {
     return m_currentSessionName;
 }
 
+void SubmissionDAO::saveCurrentSessionState() {
+    try {
+        std::ofstream f("active_session.cfg");
+        if (f.is_open()) {
+            f << m_currentSessionId << "\n";
+            f << m_currentSessionName << "\n";
+            f.close();
+        }
+    } catch (...) {}
+
+    auto& db = DatabaseConnection::instance();
+    if (db.isConnected()) {
+        db.execute("UPDATE grading_sessions SET is_active = 0;");
+        db.execute("UPDATE grading_sessions SET is_active = 1 WHERE id = " + std::to_string(m_currentSessionId) + ";");
+    }
+}
+
+void SubmissionDAO::loadCurrentSessionState() {
+    int savedId = 0;
+    try {
+        std::ifstream f("active_session.cfg");
+        if (f.is_open()) {
+            f >> savedId;
+            f.close();
+        }
+    } catch (...) {}
+
+    if (savedId > 0) {
+        for (const auto& s : m_sessions) {
+            if (s.id == savedId) {
+                m_currentSessionId = savedId;
+                m_currentSessionName = s.sessionName;
+                return;
+            }
+        }
+    }
+}
+
 int SubmissionDAO::startNewSession(const std::string& name) {
     std::lock_guard<std::mutex> lock(m_mutex);
 
@@ -60,7 +101,10 @@ int SubmissionDAO::startNewSession(const std::string& name) {
         db.execute("UPDATE grading_sessions SET is_completed = 1 WHERE id = " + std::to_string(m_currentSessionId) + ";");
     }
 
-    int newId = static_cast<int>(m_sessions.size()) + 1;
+    int newId = 1;
+    for (const auto& s : m_sessions) {
+        if (s.id >= newId) newId = s.id + 1;
+    }
     std::string sName = name.empty() ? generateSessionDefaultName(newId) : name;
 
     SessionInfo newSession;
@@ -73,13 +117,78 @@ int SubmissionDAO::startNewSession(const std::string& name) {
     m_currentSessionName = sName;
 
     if (db.isConnected()) {
-        std::string sql = "INSERT INTO grading_sessions (id, session_name, is_completed) VALUES (" +
-                          std::to_string(newId) + ", '" + sName + "', 0);";
+        std::string sql = "INSERT INTO grading_sessions (id, session_name, is_completed, is_active) VALUES (" +
+                          std::to_string(newId) + ", '" + sName + "', 0, 1);";
         db.execute(sql);
     }
 
+    saveCurrentSessionState();
     Logger::instance().success("Đã khởi tạo phiên chấm mới: " + sName);
     return newId;
+}
+
+bool SubmissionDAO::setCurrentSession(int sessionId) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    for (const auto& s : m_sessions) {
+        if (s.id == sessionId) {
+            m_currentSessionId = s.id;
+            m_currentSessionName = s.sessionName;
+            saveCurrentSessionState();
+            Logger::instance().info("Đã chọn phiên chấm hiện tại: " + s.sessionName);
+            return true;
+        }
+    }
+    return false;
+}
+
+bool SubmissionDAO::deleteSession(int sessionId) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+
+    auto& db = DatabaseConnection::instance();
+    if (db.isConnected()) {
+        db.execute("DELETE st FROM submission_testcases st "
+                   "JOIN submissions s ON st.submission_id = s.id "
+                   "WHERE s.session_id = " + std::to_string(sessionId) + ";");
+        db.execute("DELETE FROM submissions WHERE session_id = " + std::to_string(sessionId) + ";");
+        db.execute("DELETE FROM grading_sessions WHERE id = " + std::to_string(sessionId) + ";");
+    }
+
+    // Xóa trong bộ nhớ cache submissions
+    m_localSubmissions.erase(
+        std::remove_if(m_localSubmissions.begin(), m_localSubmissions.end(),
+                       [sessionId](const SubmissionSummary& s) { return s.sessionId == sessionId; }),
+        m_localSubmissions.end()
+    );
+
+    // Xóa phiên trong danh sách m_sessions
+    m_sessions.erase(
+        std::remove_if(m_sessions.begin(), m_sessions.end(),
+                       [sessionId](const SessionInfo& s) { return s.id == sessionId; }),
+        m_sessions.end()
+    );
+
+    // Nếu vừa xóa đúng phiên hiện tại
+    if (m_currentSessionId == sessionId) {
+        if (!m_sessions.empty()) {
+            m_currentSessionId = m_sessions.back().id;
+            m_currentSessionName = m_sessions.back().sessionName;
+        } else {
+            SessionInfo fresh;
+            fresh.id = 1;
+            fresh.sessionName = "Phiên #1";
+            fresh.isCompleted = false;
+            m_sessions.push_back(fresh);
+            m_currentSessionId = 1;
+            m_currentSessionName = "Phiên #1";
+            if (db.isConnected()) {
+                db.execute("INSERT INTO grading_sessions (id, session_name, is_completed, is_active) VALUES (1, 'Phiên #1', 0, 1);");
+            }
+        }
+    }
+
+    saveCurrentSessionState();
+    Logger::instance().success("Đã xóa hoàn toàn phiên #" + std::to_string(sessionId));
+    return true;
 }
 
 void SubmissionDAO::completeCurrentSession() {
@@ -180,9 +289,13 @@ bool SubmissionDAO::loadFromDatabase() {
                 s.isCompleted = (sr[3] == "1");
                 m_sessions.push_back(s);
             }
-            if (!m_sessions.empty()) {
-                m_currentSessionId = m_sessions.back().id;
-                m_currentSessionName = m_sessions.back().sessionName;
+            // Khôi phục phiên làm việc đang chọn từ CSDL hoặc file cấu hình
+            auto activeRows = db.queryRows("SELECT id, session_name FROM grading_sessions WHERE is_active = 1 LIMIT 1;");
+            if (!activeRows.empty() && activeRows[0].size() >= 2) {
+                m_currentSessionId = std::stoi(activeRows[0][0]);
+                m_currentSessionName = activeRows[0][1];
+            } else {
+                loadCurrentSessionState();
             }
         }
     }

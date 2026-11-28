@@ -99,7 +99,13 @@ bool DatabaseConnection::connect(const DbConfig& config) {
             "id INT AUTO_INCREMENT PRIMARY KEY,"
             "session_name VARCHAR(128) NOT NULL,"
             "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
-            "is_completed TINYINT DEFAULT 0);");
+            "is_completed TINYINT DEFAULT 0,"
+            "is_active TINYINT DEFAULT 0);");
+
+    auto sessCols = queryRows("SHOW COLUMNS FROM grading_sessions LIKE 'is_active'");
+    if (sessCols.empty()) {
+        execute("ALTER TABLE grading_sessions ADD COLUMN is_active TINYINT DEFAULT 0;");
+    }
 
     execute("CREATE TABLE IF NOT EXISTS contestants ("
             "id INT AUTO_INCREMENT PRIMARY KEY,"

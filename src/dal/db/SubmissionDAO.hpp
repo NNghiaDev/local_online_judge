@@ -17,6 +17,8 @@ public:
     std::string getCurrentSessionName() const;
     int startNewSession(const std::string& name = "");
     void completeCurrentSession();
+    bool setCurrentSession(int sessionId);
+    bool deleteSession(int sessionId);
     std::vector<SessionInfo> getAllSessions();
 
     // Submissions CRUD
@@ -36,6 +38,8 @@ private:
     ~SubmissionDAO() = default;
 
     std::string generateSessionDefaultName(int id);
+    void saveCurrentSessionState();
+    void loadCurrentSessionState();
 
     mutable std::mutex m_mutex;
     std::vector<SubmissionSummary> m_localSubmissions;

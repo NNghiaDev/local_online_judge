@@ -26,6 +26,10 @@ private:
     std::string m_contestantToDeleteName;
     bool m_showDeleteConfirmPopup = false;
 
+    // Quản lý xóa phiên
+    int m_sessionToDeleteId = 0;
+    bool m_showDeleteSessionModal = false;
+
     // Thông báo xuất file
     std::string m_exportStatusMessage;
 };
